@@ -2187,6 +2187,11 @@ body {
       var sc = mx.querySelector('.mx-scroll');
       if (h && sc) matrixScroll[h.getAttribute('data-mxtoggle') || ''] = sc.scrollLeft;
     });
+    // 講師側テストゼミの「第1回〜第10回」横スクロール位置も維持する。
+    // 右側の回を選んだ瞬間に左端へ戻るのを防ぐ。
+    var seminarTabsScroll = null;
+    var seminarTabsBefore = root.querySelector('.seminar-round-tabs');
+    if (seminarTabsBefore) seminarTabsScroll = seminarTabsBefore.scrollLeft;
 
     var head = '<div class="hd">' +
       '<h1><span class="mark"></span>過去問の記録</h1>' +
@@ -2210,6 +2215,10 @@ body {
       var label = h.getAttribute('data-mxtoggle') || '';
       if (Object.prototype.hasOwnProperty.call(matrixScroll, label)) sc.scrollLeft = matrixScroll[label];
     });
+    if (seminarTabsScroll !== null) {
+      var seminarTabsAfter = root.querySelector('.seminar-round-tabs');
+      if (seminarTabsAfter) seminarTabsAfter.scrollLeft = seminarTabsScroll;
+    }
   }
   function flash(m) {
     S.toast = m; render();
