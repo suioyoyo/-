@@ -2178,6 +2178,16 @@ body {
   /* ---------- render ---------- */
   function render() {
     if (S.loading) { root.innerHTML = '<div class="boot">読み込み中…</div>'; return; }
+
+    // 横スクロールした表の位置を、再描画の前後で維持する。
+    // iPhone縦画面で右側のセルを開いた瞬間に左端へ戻るのを防ぐ。
+    var matrixScroll = {};
+    root.querySelectorAll('.mx').forEach(function (mx) {
+      var h = mx.querySelector('[data-mxtoggle]');
+      var sc = mx.querySelector('.mx-scroll');
+      if (h && sc) matrixScroll[h.getAttribute('data-mxtoggle') || ''] = sc.scrollLeft;
+    });
+
     var head = '<div class="hd">' +
       '<h1><span class="mark"></span>過去問の記録</h1>' +
       '<div class="who">' + (S.tab === 'student'
@@ -2192,6 +2202,14 @@ body {
       (S.tab === 'student' ? studentView() : teacherView()) +
       (S.toast ? '<div class="toast">' + esc(S.toast) + '</div>' : '');
     bind();
+
+    root.querySelectorAll('.mx').forEach(function (mx) {
+      var h = mx.querySelector('[data-mxtoggle]');
+      var sc = mx.querySelector('.mx-scroll');
+      if (!h || !sc) return;
+      var label = h.getAttribute('data-mxtoggle') || '';
+      if (Object.prototype.hasOwnProperty.call(matrixScroll, label)) sc.scrollLeft = matrixScroll[label];
+    });
   }
   function flash(m) {
     S.toast = m; render();
@@ -2508,6 +2526,8 @@ body {
         var label = cell.getAttribute('data-qlabel') || '';
         var year = cell.getAttribute('data-qyear') || '';
         var subject = cell.getAttribute('data-qsubject') || '';
+        var scrollBox = cell.closest('.mx-scroll');
+        var keepScrollLeft = scrollBox ? scrollBox.scrollLeft : 0;
         var u = label === CENTER_NAME ? centerUni() : S.unis.filter(function (x) { return uniLabel(x) === label; })[0];
         var sb = u && u.subjects ? u.subjects.filter(function (x) { return x.name === subject; })[0] : null;
         var prev = S.myRecs.filter(function (r) {
@@ -2527,8 +2547,21 @@ body {
         };
         render();
         setTimeout(function () {
+          var targetScroll = null;
+          root.querySelectorAll('.mx').forEach(function (mx) {
+            var h = mx.querySelector('[data-mxtoggle]');
+            if (h && (h.getAttribute('data-mxtoggle') || '') === label) targetScroll = mx.querySelector('.mx-scroll');
+          });
+          if (targetScroll) targetScroll.scrollLeft = keepScrollLeft;
+
           var el = root.querySelector('#q-score');
-          if (el) { el.focus(); el.select(); }
+          if (el) {
+            try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+            el.select();
+          }
+          // iOS Safariがキーボード表示時に横位置を再調整することがあるので、入力欄フォーカス後にも戻す。
+          if (targetScroll) targetScroll.scrollLeft = keepScrollLeft;
+          setTimeout(function () { if (targetScroll) targetScroll.scrollLeft = keepScrollLeft; }, 80);
         }, 0);
       };
     });
