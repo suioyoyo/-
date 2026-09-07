@@ -1880,15 +1880,9 @@ body {
       }).join('');
       return '<div class="wrap">' +
         '<div class="sec-title">自分の名前を選んでください</div>' +
-        (S.roster.length ? '<div class="pick">' + buttons + '</div>' : '<p class="note" style="margin-top:0">まだ誰も登録されていません。</p>') +
-        '<div class="card">' +
-          '<div class="field"><label>はじめての人はここに名前を入力</label>' +
-          '<input id="newname" placeholder="例）佐藤 陽菜" autocomplete="off"></div>' +
-          '<div class="row2">' +
-            '<div class="field"><label>4桁PIN</label><input id="newpin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]*" placeholder="••••"></div>' +
-            '<div class="field"><label>PINをもう一度</label><input id="newpin2" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]*" placeholder="••••"></div>' +
-          '</div>' +
-          '<button class="btn wide" id="addme">この名前ではじめる</button>' +
+        (S.roster.length ? '<div class="pick">' + buttons + '</div>' : '<p class="note" style="margin-top:0">まだ生徒が登録されていません。講師に登録してもらってください。</p>') +
+        '<div class="card" style="margin-top:14px">' +
+          '<p class="note" style="margin:0">名前の追加・変更は講師側から行います。自分の名前が見つからない場合は講師に確認してください。</p>' +
         '</div>' +
         '<p class="note" style="margin-top:12px">次回はこの端末なら自動で自分の画面を開きます。名前を切り替えた場合はPINが必要です。</p>' +
       '</div>';
@@ -2036,19 +2030,10 @@ body {
     var allFlat = [];
     S.roster.forEach(function (st) { (S.all[st.id] || []).forEach(function (r) { allFlat.push({ s: st, r: r }); }); });
     function delBlockHTML(st) {
-      if (S.delSid !== st.id) {
-        return '<p class="note" style="padding:10px 0 4px;text-align:right">' +
-          '<button class="barlink" data-delstu="' + esc(st.id) + '">この生徒をアーカイブ</button></p>';
-      }
       var n = (S.all[st.id] || []).length;
-      return '<div class="delbox">' +
-        '<p class="delwarn">' + esc(st.name) + 'さんを一覧から非表示にします。記録' + n + '件・大学・共通テスト・テストゼミのデータは消えず、いつでも復元できます。</p>' +
-        '<div class="field"><label>確認のため「' + esc(st.name) + '」と入力してください</label>' +
-        '<input id="del-name" placeholder="' + esc(st.name) + '" autocomplete="off"></div>' +
-        '<div class="row2">' +
-          '<button class="btn sm danger" id="del-go">アーカイブする</button>' +
-          '<button class="btn sm ghost" id="del-cancel">やめる</button>' +
-        '</div>' +
+      return '<div class="delbox" style="margin-top:12px">' +
+        '<p class="delwarn">この生徒を削除すると、記録' + n + '件・共通テスト・大学設定・テストゼミ成績も削除されます。</p>' +
+        '<button class="btn sm danger" data-delstu="' + esc(st.id) + '">この生徒を削除</button>' +
       '</div>';
     }
 
@@ -2090,7 +2075,7 @@ body {
       card = '<div class="teacher-single-card">' +
         '<div class="teacher-single-head">' +
           '<div class="teacher-card-head">' +
-            '<div><div class="teacher-card-name">' + esc(st.name) + '</div><div class="teacher-card-school">' + esc(firstLabel) + '</div></div>' +
+            '<div><div class="teacher-card-name">' + esc(st.name) + '</div><div class="teacher-card-school">' + esc(firstLabel) + '</div><button class="barlink" id="teacher-rename-student" style="margin-top:5px">名前を変更</button></div>' +
             '<div class="teacher-last"><span>最終記録</span><b>' + esc(latestText) + '</b></div>' +
           '</div>' +
           '<div class="teacher-metrics">' +
@@ -2103,11 +2088,9 @@ body {
       '</div>';
     }
 
-    var archivedBox = S.archived && S.archived.length ? '<details class="card" style="margin-top:14px"><summary style="cursor:pointer;font-weight:800">アーカイブ済みの生徒（' + S.archived.length + '人）</summary><div style="margin-top:10px">' + S.archived.map(function(st){ return '<div class="subj-row"><div>' + esc(st.name) + '</div><div style="display:flex;gap:10px;align-items:center"><button class="barlink" data-restorestu="' + esc(st.id) + '">復元</button><button class="barlink" style="color:#B4232B" data-harddelstu="' + esc(st.id) + '">完全削除</button></div></div>'; }).join('') + '<p class="note" style="margin-top:10px">完全削除すると、その生徒の過去問・共通テスト・大学設定・テストゼミ成績も削除されます。実行前にバックアップを保存します。</p></div></details>' : '';
-
     var empty = S.roster.length
       ? '<div class="empty">この条件に該当する生徒はいません。</div>'
-      : '<div class="empty">生徒がまだ登録されていません。生徒モードから登録してもらってください。</div>';
+      : '<div class="empty">生徒がまだ登録されていません。下の「生徒を追加」から登録してください。</div>';
 
     return '<div class="wrap teacher-dashboard">' +
       seminarModeTabs('teacher') +
@@ -2116,6 +2099,7 @@ body {
       '<div class="teacher-student-tabs">' + tabs + '</div>' +
       '<div class="teacher-students">' + (card || empty) + '</div>' +
       '<div class="teacher-adminline">' +
+        '<button class="barlink" id="teacher-add-student">生徒を追加</button>' +
         '<button class="barlink" id="reload">最新の入力を読み込む</button>' +
         '<button class="barlink" id="csv">CSVで書き出す</button>' +
         '<button class="barlink teacher-manage-link" data-ttab="unis">大学・科目を管理</button>' +
@@ -2355,27 +2339,6 @@ body {
     });
     on('#student-pin', 'onkeydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var b = root.querySelector('#student-login'); if (b) b.click(); } });
     on('#student-pin2', 'onkeydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var b = root.querySelector('#student-login'); if (b) b.click(); } });
-
-    on('#addme', 'onclick', async function () {
-      var el = root.querySelector('#newname');
-      var name = (el.value || '').trim();
-      var pin1 = ((root.querySelector('#newpin') || {}).value || '').trim();
-      var pin2 = ((root.querySelector('#newpin2') || {}).value || '').trim();
-      if (!name) { S.error = '名前を入力してください。'; render(); return; }
-      if (!validPin(pin1)) { S.error = 'PINは4桁の数字で設定してください。'; render(); return; }
-      if (pin1 !== pin2) { S.error = '2回のPINが一致していません。'; render(); return; }
-      var fresh = parse(await sGet('roster', true), []);
-      if (fresh.some(function (x) { return x.name === name; })) {
-        S.error = 'この名前はすでに登録されています。上の一覧から名前を選んでPINを入力してください。'; render(); return;
-      }
-      var me = { id: 's' + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36), name: name, pinHash: await hashPin(pin1), pin: pin1 };
-      fresh.push(me);
-      await sSet('roster', JSON.stringify(fresh), true);
-      S.roster = fresh; S.me = me; S.authSid = ''; S.error = '';
-      await sSet('me', me.id, false);
-      await loadMyRecs(); await loadCT(); await loadUnis();
-      S.form = blankForm(); render();
-    });
 
     on('#switchme', 'onclick', async function () {
       await sSet('me', '', false);
@@ -2739,67 +2702,83 @@ body {
       render();
     });
 
-    root.querySelectorAll('[data-delstu]').forEach(function (b) {
-      b.onclick = function (e) {
-        e.preventDefault();
-        S.delSid = b.getAttribute('data-delstu'); S.error = ''; render();
-      };
-    });
-    on('#del-cancel', 'onclick', function () { S.delSid = ''; S.error = ''; render(); });
-    on('#del-go', 'onclick', async function () {
-      var s2 = S.roster.filter(function (x) { return x.id === S.delSid; })[0];
-      if (!s2) { S.delSid = ''; render(); return; }
-      var typed = (root.querySelector('#del-name').value || '').trim();
-      if (typed !== s2.name) { S.error = '名前が一致しません。「' + s2.name + '」と入力してください。'; render(); return; }
-      await safetyBackup('生徒アーカイブ前', s2.id);
-      var fresh = parse(await sGet('roster', true), []).filter(function (x) { return x.id !== s2.id; });
-      var archived = parse(await sGet('archived-roster', true), []);
-      if (!archived.some(function(x){ return x.id === s2.id; })) archived.push(s2);
+    on('#teacher-add-student', 'onclick', async function () {
+      var name = prompt('追加する生徒の名前を入力してください。');
+      if (name === null) return;
+      name = name.trim();
+      if (!name) { S.error = '名前を入力してください。'; render(); return; }
+      var fresh = parse(await sGet('roster', true), []);
+      if (fresh.some(function (x) { return x.name === name; })) {
+        S.error = '同じ名前の生徒がすでに登録されています。'; render(); return;
+      }
+      var st = { id: 's' + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36), name: name };
+      fresh.push(st);
       await sSet('roster', JSON.stringify(fresh), true);
-      await sSet('archived-roster', JSON.stringify(archived), true);
-      S.delSid = ''; S.error = '';
+      S.teacherStudent = st.id;
+      S.error = '';
       await refreshTeacher();
-      flash(s2.name + 'さんをアーカイブしました');
+      flash(name + 'さんを追加しました。初回ログイン時に本人が4桁PINを設定します');
     });
 
-    root.querySelectorAll('[data-restorestu]').forEach(function (b) {
-      b.onclick = async function () {
-        var id = b.getAttribute('data-restorestu');
-        var archived = parse(await sGet('archived-roster', true), []);
-        var st = archived.filter(function(x){ return x.id === id; })[0];
-        if (!st) return;
-        await safetyBackup('生徒復元前', id);
-        var fresh = parse(await sGet('roster', true), []);
-        if (!fresh.some(function(x){ return x.id === id; })) fresh.push(st);
-        archived = archived.filter(function(x){ return x.id !== id; });
-        await sSet('roster', JSON.stringify(fresh), true);
-        await sSet('archived-roster', JSON.stringify(archived), true);
-        await refreshTeacher();
-        flash(st.name + 'さんを復元しました');
-      };
+    on('#teacher-rename-student', 'onclick', async function () {
+      var st = S.roster.filter(function (x) { return x.id === S.teacherStudent; })[0];
+      if (!st) return;
+      var name = prompt('新しい名前を入力してください。', st.name);
+      if (name === null) return;
+      name = name.trim();
+      if (!name) { S.error = '名前を入力してください。'; render(); return; }
+      var fresh = parse(await sGet('roster', true), []);
+      if (fresh.some(function (x) { return x.id !== st.id && x.name === name; })) {
+        S.error = '同じ名前の生徒がすでに登録されています。'; render(); return;
+      }
+      await safetyBackup('生徒名変更前', st.id);
+      fresh = fresh.map(function (x) { return x.id === st.id ? Object.assign({}, x, { name: name }) : x; });
+      await sSet('roster', JSON.stringify(fresh), true);
+      S.error = '';
+      await refreshTeacher();
+      flash('生徒名を「' + name + '」に変更しました');
     });
 
-
-    root.querySelectorAll('[data-harddelstu]').forEach(function (b) {
-      b.onclick = async function () {
-        var id = b.getAttribute('data-harddelstu');
-        var archived = parse(await sGet('archived-roster', true), []);
-        var st = archived.filter(function(x){ return x.id === id; })[0];
+    root.querySelectorAll('[data-delstu]').forEach(function (b) {
+      b.onclick = async function (e) {
+        e.preventDefault();
+        var id = b.getAttribute('data-delstu');
+        var st = S.roster.filter(function (x) { return x.id === id; })[0];
         if (!st) return;
-        if (!confirm(st.name + 'さんを完全削除します。\n\n過去問・共通テスト・大学設定・テストゼミ成績も削除されます。\nこの操作は画面上からは元に戻せません。')) return;
-        var typed = prompt('確認のため「' + st.name + '」と入力してください。');
-        if (typed === null) return;
-        if (typed.trim() !== st.name) { S.error = '名前が一致しないため、完全削除を中止しました。'; render(); return; }
-        await safetyBackup('生徒完全削除前', id);
+        if (!confirm(st.name + 'さんを完全に削除します。\n\n過去問・共通テスト・大学設定・テストゼミ成績も削除されます。')) return;
+        var pass = prompt('削除パスワードを入力してください。');
+        if (pass === null) return;
+        if (pass.trim() !== '1284') {
+          S.error = '削除パスワードが違います。'; render(); return;
+        }
         try { await window.storage.delete('rec:' + id, true); } catch (e) {}
         try { await window.storage.delete('ct:' + id, true); } catch (e) {}
         try { await window.storage.delete(unisKey(id), true); } catch (e) {}
         try { await window.storage.delete('wish:' + id, true); } catch (e) {}
         var sem = parse(await sGet('seminar', true), []);
-        sem.forEach(function(rr){ if (rr.scores && Object.prototype.hasOwnProperty.call(rr.scores, id)) delete rr.scores[id]; });
+        sem.forEach(function (rr) { if (rr.scores && Object.prototype.hasOwnProperty.call(rr.scores, id)) delete rr.scores[id]; });
         await sSet('seminar', JSON.stringify(sem), true);
-        archived = archived.filter(function(x){ return x.id !== id; });
+        var fresh = parse(await sGet('roster', true), []).filter(function (x) { return x.id !== id; });
+        await sSet('roster', JSON.stringify(fresh), true);
+        var archived = parse(await sGet('archived-roster', true), []).filter(function (x) { return x.id !== id; });
         await sSet('archived-roster', JSON.stringify(archived), true);
+        try {
+          var backups = parse(await sGet('safety-backups', true), []);
+          backups.forEach(function (snap) {
+            if (Array.isArray(snap.roster)) snap.roster = snap.roster.filter(function (x) { return x.id !== id; });
+            if (Array.isArray(snap.seminar)) snap.seminar.forEach(function (rr) {
+              if (rr.scores && Object.prototype.hasOwnProperty.call(rr.scores, id)) delete rr.scores[id];
+            });
+            if (snap.sid === id) {
+              snap.sid = '';
+              delete snap.recs;
+              delete snap.ct;
+              delete snap.unis;
+            }
+          });
+          await sSet('safety-backups', JSON.stringify(backups), true);
+        } catch (e) {}
+        if (S.teacherStudent === id) S.teacherStudent = '';
         S.error = '';
         await refreshTeacher();
         flash(st.name + 'さんを完全削除しました');
