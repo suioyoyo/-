@@ -1851,9 +1851,7 @@ body {
       var medal = mine.rank === 1 ? '<span class="medal gold">1位</span>' : (mine.rank === 2 ? '<span class="medal silver">2位</span>' : '');
       return '<div class="seminar-row' + cls + '">' +
         '<div class="seminar-round">第' + r.round + '回<small>' + esc(fmtDate(r.date)) + '</small></div>' +
-        '<div class="seminar-breakdown">' +
-          '<span style="display:inline-flex;align-items:center;gap:4px">文系 <input class="seminar-input" style="width:48px;padding:5px 3px" type="number" min="0" max="' + Number(r.full1 || 0) + '" inputmode="numeric" data-student-seminar-score="' + r.round + '|p1" value="' + (mine.p1 === null ? '' : mine.p1) + '" aria-label="第' + r.round + '回 文系正答数">/' + Number(r.full1 || 0) + '</span>　' +
-          '<span style="display:inline-flex;align-items:center;gap:4px">理系 <input class="seminar-input" style="width:48px;padding:5px 3px" type="number" min="0" max="' + Number(r.full2 || 0) + '" inputmode="numeric" data-student-seminar-score="' + r.round + '|p2" value="' + (mine.p2 === null ? '' : mine.p2) + '" aria-label="第' + r.round + '回 理系正答数">/' + Number(r.full2 || 0) + '</span>' +
+        '<div class="seminar-breakdown">文系 <b>' + (mine.p1 === null ? '—' : mine.p1) + '</b>/' + Number(r.full1 || 0) + '　理系 <b>' + (mine.p2 === null ? '—' : mine.p2) + '</b>/' + Number(r.full2 || 0) +
           (completed ? '<br>合計 ' + mine.total + '/' + mine.fullTotal : '') + '</div>' +
         '<div class="seminar-score"><b>' + (completed ? pct1(mine.pct) : '—') + '</b>' + medal + '</div>' +
       '</div>';
@@ -1872,7 +1870,7 @@ body {
     var scoreView = '<div class="seminar-summary"><div class="seminar-stat"><b>' + pct1(ownAvg) + '</b><span>10回の平均正答率</span></div>' +
       '<div class="seminar-stat"><b>' + pct1(latest) + '</b><span>最新回の正答率</span></div></div>' +
       '<div class="seminar-list">' + rows + '</div>' +
-      '<p class="note" style="margin-top:12px">文系・理系の正答数は自分で入力できます。満点は講師が設定します。入力内容は講師側にも反映され、講師から修正できます。1位は金、2位は銀で表示します。</p>';
+      '<p class="note" style="margin-top:12px">1位は金、2位は銀で表示します。3位以下の順位は生徒画面には表示しません。</p>';
     var graphView = '<div class="seminar-chart-card">' +
       '<div class="seminar-chart-title"><b>文系・理系 正答率推移</b><div class="seminar-legend"><span class="humanities"><i></i>文系</span><span class="science"><i></i>理系</span></div></div>' +
       '<div class="seminar-chart-wrap">' + seminarLineChartHTML(series) + '</div>' +
@@ -2336,20 +2334,6 @@ body {
         });
         if (hasOver) { S.error = '入力済みの正答数より小さい満点にはできません。先に正答数を直してください。'; render(); return; }
         rr[key] = n;
-        await saveSeminar(); S.error = ''; render();
-      };
-    });
-
-    root.querySelectorAll('[data-student-seminar-score]').forEach(function (inp) {
-      inp.onchange = async function () {
-        if (!S.me) return;
-        var parts = inp.getAttribute('data-student-seminar-score').split('|');
-        var round = Number(parts[0]), part = parts[1], val = inp.value.trim();
-        var rr = seminarRoundInfo(round); if (!rr) return;
-        var maxVal = part === 'p1' ? Number(rr.full1 || 0) : Number(rr.full2 || 0);
-        if (val !== '' && (isNaN(Number(val)) || Number(val) < 0 || Number(val) > maxVal)) { S.error = '正答数は0〜' + maxVal + 'で入力してください。'; render(); return; }
-        rr.scores = rr.scores || {}; rr.scores[S.me.id] = rr.scores[S.me.id] || {};
-        rr.scores[S.me.id][part] = val === '' ? '' : Number(val);
         await saveSeminar(); S.error = ''; render();
       };
     });
