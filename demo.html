@@ -943,6 +943,22 @@ body {
   .seminar-chart-stat b { font-size:14px; }
 }
 
+
+/* --- 入試スケジュール / 出願締切 --- */
+.adm-dashboard{border:1px solid var(--rule);background:#fff;border-radius:14px;padding:13px;margin:0 0 14px;box-shadow:0 2px 10px rgba(31,41,55,.035)}
+.adm-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+.adm-head h3{margin:0;font-size:15px}.adm-head p{margin:3px 0 0;font-size:10px;color:var(--ink-soft)}
+.adm-next{flex:0 0 auto;border-radius:999px;background:#F1F3F6;padding:6px 9px;font-size:10px;font-weight:800;color:var(--ink-soft)}
+.adm-next.urgent{background:#FFF0EF;color:#B4232B}.adm-next.soon{background:#FFF7E5;color:#8A6400}
+.adm-upcoming{display:grid;gap:6px;margin-bottom:12px}.adm-event{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 9px;border:1px solid var(--rule);border-radius:10px;background:#FAFBFC}
+.adm-event-date{font-size:11px;font-weight:900}.adm-event-main{min-width:0}.adm-event-main b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.adm-event-main span{display:block;margin-top:2px;font-size:9.5px;color:var(--ink-soft)}
+.adm-count{font-size:9px;font-weight:900;border-radius:999px;padding:4px 7px;background:#EEF2F7;color:#56606E;white-space:nowrap}.adm-count.urgent{background:#FFE8E6;color:#B4232B}.adm-count.soon{background:#FFF2CC;color:#8A6400}.adm-count.past{background:#F1F2F4;color:#8E96A3}
+.adm-cal-head{display:flex;justify-content:space-between;align-items:center;margin:4px 0 7px}.adm-cal-head b{font-size:13px}.adm-cal-nav{border:1px solid var(--rule);background:#fff;border-radius:8px;padding:5px 9px;font:inherit;font-size:11px;font-weight:900;cursor:pointer}
+.adm-week,.adm-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.adm-week span{text-align:center;font-size:8.5px;color:var(--ink-soft);padding:2px 0}.adm-day{min-height:52px;border:1px solid #EEF0F3;border-radius:7px;padding:4px;background:#fff;overflow:hidden}.adm-day.blank{border-color:transparent;background:transparent}.adm-day.today{box-shadow:inset 0 0 0 1.5px var(--ink)}.adm-day>strong{display:block;font-size:9px;margin-bottom:2px}
+.adm-chip{display:block;margin-top:2px;padding:2px 3px;border-radius:4px;background:#EEF3FA;color:#36506F;font-size:7.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.adm-chip.deadline{background:#FFF1DF;color:#8A5B00}.adm-chip.urgent{background:#FFE5E3;color:#A91E27}.adm-more{display:block;font-size:7px;color:var(--ink-soft);margin-top:2px}
+.adm-empty{font-size:11px;color:var(--ink-soft);padding:3px 0}.adm-form{margin:10px 0 12px;border:1px solid var(--rule);border-radius:11px;padding:10px;background:#FAFBFC}.adm-form-title{font-size:11px;font-weight:900;margin-bottom:8px}.adm-date-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.adm-date-grid .field{margin:0}.adm-mini{display:grid;gap:4px;margin-top:9px}.adm-mini-row{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--ink-soft)}.adm-mini-row b{color:var(--ink);font-size:10px}.adm-mini-row.deadline b{color:#8A6400}
+@media(max-width:520px){.adm-event{grid-template-columns:55px minmax(0,1fr) auto;gap:6px;padding:7px}.adm-date-grid{grid-template-columns:1fr}.adm-day{min-height:45px;padding:3px}.adm-chip{font-size:7px}.adm-next{max-width:42%;overflow:hidden;text-overflow:ellipsis}.adm-head h3{font-size:14px}}
+
 </style>
 
 <script>
@@ -991,7 +1007,8 @@ body {
     seminar: [],
     seminarRound: 10,
     studentSeminarView: 'scores',
-    archived: []
+    archived: [],
+    calendarMonth: ''
   };
 
   /* ---------- 共通テストと年度 ---------- */
@@ -1226,6 +1243,130 @@ body {
     return S.unis.filter(function (u) { return u.id === key; })[0] || null;
   }
 
+  var SCHEDULE_FIELDS = [
+    { key:'applyDeadline', label:'出願締切日', short:'出願締切', deadline:true },
+    { key:'examDate', label:'試験日', short:'試験', deadline:false },
+    { key:'resultDate', label:'合格発表日', short:'合格発表', deadline:false },
+    { key:'paymentDeadline', label:'入学金納入期限', short:'入学金', deadline:true },
+    { key:'enrollmentDeadline', label:'入学手続締切日', short:'手続締切', deadline:true }
+  ];
+  function cleanSchedule(raw) {
+    raw = raw || {};
+    var out = {};
+    SCHEDULE_FIELDS.forEach(function (f) { out[f.key] = raw[f.key] || ''; });
+    return out;
+  }
+  function scheduleFieldsHTML(prefix, raw) {
+    var sc = cleanSchedule(raw);
+    return '<div class="adm-form"><div class="adm-form-title">入試日程（任意）</div><div class="adm-date-grid">' +
+      SCHEDULE_FIELDS.map(function (f) {
+        return '<div class="field"><label>' + f.label + '</label><input id="' + prefix + '-' + f.key + '" type="date" value="' + esc(sc[f.key]) + '"></div>';
+      }).join('') +
+      '</div></div>';
+  }
+  function readScheduleForm(prefix) {
+    var out = {};
+    SCHEDULE_FIELDS.forEach(function (f) {
+      var el = root.querySelector('#' + prefix + '-' + f.key);
+      out[f.key] = el ? (el.value || '') : '';
+    });
+    return out;
+  }
+  function isoDateObj(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+    if (!m) return null;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0, 0);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function todayLocal() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0); }
+  function daysUntil(iso) { var d = isoDateObj(iso); return d ? Math.round((d - todayLocal()) / 86400000) : null; }
+  function scheduleDateText(iso) {
+    var d = isoDateObj(iso); if (!d) return '';
+    return (d.getMonth()+1) + '/' + d.getDate() + '（' + ['日','月','火','水','木','金','土'][d.getDay()] + '）';
+  }
+  function scheduleEvents(unis) {
+    var out = [];
+    (unis || []).forEach(function (u) {
+      var sc = cleanSchedule(u.schedule);
+      SCHEDULE_FIELDS.forEach(function (f) {
+        if (!sc[f.key]) return;
+        out.push({ uid:u.id, school:uniLabel(u), kind:u.kind || 'sub', date:sc[f.key], key:f.key, label:f.label, short:f.short, deadline:f.deadline, days:daysUntil(sc[f.key]) });
+      });
+    });
+    return out.sort(function (a,b) { return a.date.localeCompare(b.date) || kindRank(a.kind)-kindRank(b.kind) || a.school.localeCompare(b.school); });
+  }
+  function urgencyClass(ev) {
+    var d = ev.days;
+    if (d === null) return '';
+    if (d < 0) return 'past';
+    if (ev.deadline && d <= 7) return 'urgent';
+    if (ev.deadline && d <= 30) return 'soon';
+    return '';
+  }
+  function relativeScheduleText(ev) {
+    var d = ev.days;
+    if (d === null) return '';
+    if (d < 0) return Math.abs(d) + '日前';
+    if (d === 0) return '今日';
+    if (d === 1) return '明日';
+    return 'あと' + d + '日';
+  }
+  function scheduleMiniHTML(u) {
+    var evs = scheduleEvents([u]);
+    if (!evs.length) return '<div class="adm-mini"><div class="adm-mini-row"><span>入試日程</span><b>未登録</b></div></div>';
+    return '<div class="adm-mini">' + evs.map(function (ev) {
+      return '<div class="adm-mini-row' + (ev.deadline ? ' deadline' : '') + '"><span>' + esc(ev.label) + '</span><b>' + esc(scheduleDateText(ev.date)) + '</b></div>';
+    }).join('') + '</div>';
+  }
+  function scheduleDashboardHTML(unis) {
+    var events = scheduleEvents(unis);
+    if (!events.length) {
+      return '<div class="adm-dashboard"><div class="adm-head"><div><h3>入試スケジュール</h3><p>志望校の編集画面から日程を登録できます。</p></div></div><div class="adm-empty">出願締切・試験日・合格発表・入学手続の日程はまだ登録されていません。</div></div>';
+    }
+    var upcoming = events.filter(function (e) { return e.days !== null && e.days >= 0; });
+    var nextDeadline = upcoming.filter(function (e) { return e.deadline; })[0] || null;
+    var badge = nextDeadline ? '<div class="adm-next ' + urgencyClass(nextDeadline) + '">' + esc(nextDeadline.short) + ' ' + esc(relativeScheduleText(nextDeadline)) + '</div>' : '';
+    var up = upcoming.slice(0,5).map(function (ev) {
+      var uc = urgencyClass(ev);
+      return '<div class="adm-event"><div class="adm-event-date">' + esc(scheduleDateText(ev.date)) + '</div><div class="adm-event-main"><b>' + esc(ev.school) + '</b><span>' + esc(ev.label) + '</span></div><div class="adm-count ' + uc + '">' + esc(relativeScheduleText(ev)) + '</div></div>';
+    }).join('');
+    if (!up) up = '<div class="adm-empty">今後の日程はありません。</div>';
+
+    var month = S.calendarMonth;
+    if (!/^\d{4}-\d{2}$/.test(month || '')) {
+      month = (upcoming[0] ? upcoming[0].date : events[events.length-1].date).slice(0,7);
+      S.calendarMonth = month;
+    }
+    var mp = month.split('-'), y = Number(mp[0]), m = Number(mp[1]);
+    var first = new Date(y,m-1,1,12), days = new Date(y,m,0,12).getDate(), lead = first.getDay();
+    var byDay = {};
+    events.forEach(function (ev) {
+      if (ev.date.slice(0,7) !== month) return;
+      var day = Number(ev.date.slice(8,10));
+      (byDay[day] = byDay[day] || []).push(ev);
+    });
+    var cells = '';
+    for (var i=0;i<lead;i++) cells += '<div class="adm-day blank"></div>';
+    var td = todayLocal();
+    for (var day=1;day<=days;day++) {
+      var isToday = td.getFullYear()===y && td.getMonth()===m-1 && td.getDate()===day;
+      var evs = byDay[day] || [];
+      var chips = evs.slice(0,2).map(function (ev) {
+        var uc = urgencyClass(ev);
+        return '<span class="adm-chip' + (ev.deadline ? ' deadline' : '') + (uc==='urgent' ? ' urgent' : '') + '" title="' + esc(ev.school + ' ' + ev.label) + '">' + esc(ev.short) + '</span>';
+      }).join('');
+      if (evs.length>2) chips += '<span class="adm-more">+' + (evs.length-2) + '</span>';
+      cells += '<div class="adm-day' + (isToday ? ' today' : '') + '"><strong>' + day + '</strong>' + chips + '</div>';
+    }
+    return '<div class="adm-dashboard">' +
+      '<div class="adm-head"><div><h3>入試スケジュール</h3><p>締切が近いものから確認できます。</p></div>' + badge + '</div>' +
+      '<div class="adm-upcoming">' + up + '</div>' +
+      '<div class="adm-cal-head"><button class="adm-cal-nav" data-calnav="-1">‹</button><b>' + y + '年' + m + '月</b><button class="adm-cal-nav" data-calnav="1">›</button></div>' +
+      '<div class="adm-week"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>' +
+      '<div class="adm-cal">' + cells + '</div>' +
+    '</div>';
+  }
+
   // 「英語 100 65」「英語, 100, 65」どちらでも受ける
   function parseSubjects(text) {
     return text.split('\n').map(function (raw) {
@@ -1249,6 +1390,7 @@ body {
         '<div class="field"><label>学部</label><input id="e-fac" value="' + esc(S.draft.faculty) + '"></div>' +
       '</div>' +
       '<div class="field"><label>目標点（合計）</label><input id="e-target" type="number" inputmode="numeric" placeholder="例）210" value="' + esc(S.draft.target == null ? '' : S.draft.target) + '"></div>' +
+      scheduleFieldsHTML('e', S.draft.schedule || {}) +
       subjectPickerHTML('e', S.draft.subjects || []) +
       '<div class="row2"><button class="btn sm" id="e-save">保存する</button>' +
       '<button class="btn sm ghost" id="e-cancel">やめる</button></div>' +
@@ -1266,10 +1408,11 @@ body {
           '<div class="field"><label>学部（任意）</label><input id="n-fac" placeholder="例）商学部" autocomplete="off"></div>' +
         '</div>' +
         '<div class="field"><label>目標点（合計）</label><input id="n-target" type="number" inputmode="numeric" placeholder="例）210"></div>' +
+        scheduleFieldsHTML('n', {}) +
         subjectPickerHTML('n', []) +
         '<button class="btn wide" id="n-add">この大学を登録する</button>' +
       '</div>' +
-      '<p class="note" style="margin-top:12px">第一志望は10年分、併願校は5年分の年度が最初から表に並びます。満点を省くと100点です。科目ごとの目標点は記録表の科目名から設定できます。</p>';
+      '<p class="note" style="margin-top:12px">第一志望は10年分、併願校は5年分の年度が最初から表に並びます。入試日程を登録すると、カレンダーと締切カウントに自動表示されます。</p>';
   }
 
   function subjectsToText(subs) {
@@ -1503,7 +1646,7 @@ body {
     if (!u) {
       u = {
         id: 'u' + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36),
-        name: rec.univ, faculty: fac, kind: 'sub', target: null, minimums: {}, subjects: []
+        name: rec.univ, faculty: fac, kind: 'sub', target: null, minimums: {}, schedule: {}, subjects: []
       };
       fresh.push(u);
       changed = true;
@@ -1614,7 +1757,7 @@ body {
           '<button class="wbtn' + (k === 'sub' ? ' sel' : '') + '" data-kind="' + esc(u.id) + '|sub">併願校</button>' +
         '</div>' +
         '<p class="note" style="margin:8px 0 0;text-align:right">' +
-          '<button class="barlink" data-edit="' + esc(u.id) + '">科目を編集</button>　' +
+          '<button class="barlink" data-edit="' + esc(u.id) + '">編集</button>　' +
           '<button class="barlink" data-delu="' + esc(u.id) + '">一覧から消す</button></p>' +
       '</div>';
     }).join('');
@@ -1657,7 +1800,7 @@ body {
           '<button class="wbtn' + (k === 'sub' ? ' sel' : '') + '" data-kind="' + esc(u.id) + '|sub">併願校</button>' +
         '</div>' +
         '<p class="note" style="margin:8px 0 0;text-align:right">' +
-          '<button class="barlink" data-edit="' + esc(u.id) + '">科目を編集</button>　' +
+          '<button class="barlink" data-edit="' + esc(u.id) + '">編集</button>　' +
           '<button class="barlink" data-delu="' + esc(u.id) + '">一覧から消す</button></p>' +
       '</div>';
     }).join('');
@@ -1954,6 +2097,7 @@ body {
 
     return '<div class="wrap">' +
       seminarModeTabs('student') +
+      scheduleDashboardHTML(S.unis) +
       inlineWishHTML() +
       ctBlock +
       '<div class="sec-title">' + esc(S.me.name) + 'さんの記録（' + S.myRecs.length + '件）</div>' +
@@ -1992,7 +2136,7 @@ body {
           '<em class="kbadge">' + KINDS[u.kind || 'sub'] + '</em></div>' +
           '<div><button class="barlink" data-edit="' + esc(u.id) + '">編集</button>　' +
           '<button class="barlink" data-delu="' + esc(u.id) + '">削除</button></div></div>' +
-          rows +
+          rows + scheduleMiniHTML(u) +
         '</div>';
       }).join('');
     }
@@ -2000,7 +2144,7 @@ body {
     return '<div class="wrap">' +
       '<div class="subtabs">' +
         '<button data-ttab="records" aria-selected="false">記録を見る</button>' +
-        '<button data-ttab="unis" aria-selected="true">大学と科目</button>' +
+        '<button data-ttab="unis" aria-selected="true">大学・科目・日程</button>' +
       '</div>' +
       '<div class="field"><select id="usel">' + opts + '</select></div>' +
       body +
@@ -2084,7 +2228,7 @@ body {
           '</div>' +
           (!st.pin ? '<p class="note" style="margin:8px 0 0">この生徒は旧保存形式です。本人が次回PINでログインすると、ここに4桁PINが表示されます。</p>' : '') +
         '</div>' +
-        '<div class="teacher-single-body teacher-readonly">' + detail + delBlockHTML(st) + '</div>' +
+        '<div class="teacher-single-body teacher-readonly">' + scheduleDashboardHTML(unis) + detail + delBlockHTML(st) + '</div>' +
       '</div>';
     }
 
@@ -2102,7 +2246,7 @@ body {
         '<button class="barlink" id="teacher-add-student">生徒を追加</button>' +
         '<button class="barlink" id="reload">最新の入力を読み込む</button>' +
         '<button class="barlink" id="csv">CSVで書き出す</button>' +
-        '<button class="barlink teacher-manage-link" data-ttab="unis">大学・科目を管理</button>' +
+        '<button class="barlink teacher-manage-link" data-ttab="unis">大学・科目・日程を管理</button>' +
       '</div>' +
       '<div id="csvbox"></div>' +
     '</div>';
@@ -2254,6 +2398,16 @@ body {
         rr.scores = rr.scores || {}; rr.scores[sid] = rr.scores[sid] || {};
         rr.scores[sid][part] = val === '' ? '' : Number(val);
         await saveSeminar(); S.error = ''; render();
+      };
+    });
+
+    root.querySelectorAll('[data-calnav]').forEach(function (b) {
+      b.onclick = function () {
+        var step = Number(b.getAttribute('data-calnav') || 0);
+        var base = /^\d{4}-\d{2}$/.test(S.calendarMonth || '') ? S.calendarMonth : (new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0'));
+        var p = base.split('-'), d = new Date(Number(p[0]), Number(p[1])-1 + step, 1, 12);
+        S.calendarMonth = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        render();
       };
     });
 
@@ -2619,6 +2773,7 @@ body {
         name: name, faculty: fac, kind: (root.querySelector('#n-kind') || {}).value || 'sub',
         target: (root.querySelector('#n-target') && root.querySelector('#n-target').value !== '') ? Number(root.querySelector('#n-target').value) : null,
         minimums: {},
+        schedule: readScheduleForm('n'),
         subjects: readSubjectPicker('n')
       };
       fresh.push(nu);
@@ -2637,7 +2792,7 @@ body {
         var u = findUni(b.getAttribute('data-edit'));
         if (!u) return;
         S.editUni = u.id;
-        S.draft = { name: u.name, faculty: u.faculty || '', kind: u.kind || 'sub', target: u.target == null ? '' : u.target, subjects: (u.subjects || []).slice() };
+        S.draft = { name: u.name, faculty: u.faculty || '', kind: u.kind || 'sub', target: u.target == null ? '' : u.target, schedule: cleanSchedule(u.schedule), subjects: (u.subjects || []).slice() };
         render();
       };
     });
@@ -2655,6 +2810,7 @@ body {
           kind: (root.querySelector('#e-kind') || {}).value || 'sub',
           target: (root.querySelector('#e-target') && root.querySelector('#e-target').value !== '') ? Number(root.querySelector('#e-target').value) : null,
           minimums: u.minimums || {},
+          schedule: readScheduleForm('e'),
           subjects: readSubjectPicker('e') };
       });
       await saveUnis(fresh);
