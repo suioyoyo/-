@@ -957,7 +957,8 @@ body {
 .adm-week,.adm-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.adm-week span{text-align:center;font-size:8.5px;color:var(--ink-soft);padding:2px 0}.adm-day{min-height:52px;border:1px solid #EEF0F3;border-radius:7px;padding:4px;background:#fff;overflow:hidden}.adm-day.blank{border-color:transparent;background:transparent}.adm-day.today{box-shadow:inset 0 0 0 1.5px var(--ink)}.adm-day>strong{display:block;font-size:9px;margin-bottom:2px}
 .adm-chip{display:block;margin-top:2px;padding:2px 3px;border-radius:4px;background:#EEF3FA;color:#36506F;font-size:7.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.adm-chip.deadline{background:#FFF1DF;color:#8A5B00}.adm-chip.urgent{background:#FFE5E3;color:#A91E27}.adm-more{display:block;font-size:7px;color:var(--ink-soft);margin-top:2px}
 .adm-empty{font-size:11px;color:var(--ink-soft);padding:3px 0}.adm-form{margin:10px 0 12px;border:1px solid var(--rule);border-radius:11px;padding:10px;background:#FAFBFC}.adm-form-title{font-size:11px;font-weight:900;margin-bottom:8px}.adm-date-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.adm-date-grid .field{margin:0}.adm-mini{display:grid;gap:4px;margin-top:9px}.adm-mini-row{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--ink-soft)}.adm-mini-row b{color:var(--ink);font-size:10px}.adm-mini-row.deadline b{color:#8A6400}
-@media(max-width:520px){.adm-event{grid-template-columns:55px minmax(0,1fr) auto;gap:6px;padding:7px}.adm-date-grid{grid-template-columns:1fr}.adm-day{min-height:45px;padding:3px}.adm-chip{font-size:7px}.adm-next{max-width:42%;overflow:hidden;text-overflow:ellipsis}.adm-head h3{font-size:14px}}
+.first-exam-count{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;border-radius:12px;background:#F3F6FB;padding:10px 11px;margin-bottom:12px}.first-exam-count span{grid-column:1/-1;font-size:9px;font-weight:900;color:var(--ink-soft)}.first-exam-count b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.first-exam-count strong{font-size:16px;text-align:right}.first-exam-count small{grid-column:1/-1;font-size:9px;color:var(--ink-soft)}.first-exam-count.muted strong{font-size:12px;color:var(--ink-soft)}
+@media(max-width:520px){.adm-event{grid-template-columns:55px minmax(0,1fr) auto;gap:6px;padding:7px}.adm-date-grid{grid-template-columns:1fr}.adm-day{min-height:45px;padding:3px}.adm-chip{font-size:7px}.adm-next{max-width:42%;overflow:hidden;text-overflow:ellipsis}.adm-head h3{font-size:14px}.first-exam-count strong{font-size:14px}}
 
 </style>
 
@@ -1238,6 +1239,7 @@ body {
   }
   function fmtDate(iso) { if (!iso) return ''; var p = iso.split('-'); return p[1] + '/' + p[2]; }
   function uniLabel(u) { return u.name + (u.faculty ? ' ' + u.faculty : ''); }
+  function uniDisplayLabel(u) { return uniLabel(u) + (u.method ? '（' + u.method + '）' : ''); }
   function findUni(key) {
     if (key === CENTER_ID) return centerUni();
     return S.unis.filter(function (u) { return u.id === key; })[0] || null;
@@ -1290,7 +1292,7 @@ body {
       var sc = cleanSchedule(u.schedule);
       SCHEDULE_FIELDS.forEach(function (f) {
         if (!sc[f.key]) return;
-        out.push({ uid:u.id, school:uniLabel(u), kind:u.kind || 'sub', date:sc[f.key], key:f.key, label:f.label, short:f.short, deadline:f.deadline, days:daysUntil(sc[f.key]) });
+        out.push({ uid:u.id, school:uniDisplayLabel(u), kind:u.kind || 'sub', date:sc[f.key], key:f.key, label:f.label, short:f.short, deadline:f.deadline, days:daysUntil(sc[f.key]) });
       });
     });
     return out.sort(function (a,b) { return a.date.localeCompare(b.date) || kindRank(a.kind)-kindRank(b.kind) || a.school.localeCompare(b.school); });
@@ -1312,35 +1314,46 @@ body {
     return 'あと' + d + '日';
   }
   function scheduleMiniHTML(u) {
-    var evs = scheduleEvents([u]);
-    if (!evs.length) return '<div class="adm-mini"><div class="adm-mini-row"><span>入試日程</span><b>未登録</b></div></div>';
-    return '<div class="adm-mini">' + evs.map(function (ev) {
-      return '<div class="adm-mini-row' + (ev.deadline ? ' deadline' : '') + '"><span>' + esc(ev.label) + '</span><b>' + esc(scheduleDateText(ev.date)) + '</b></div>';
-    }).join('') + '</div>';
+    var ev = scheduleEvents([u]).filter(function (x) { return x.key === 'applyDeadline'; })[0];
+    if (!ev) return '<div class="adm-mini"><div class="adm-mini-row"><span>出願締切</span><b>未登録</b></div></div>';
+    return '<div class="adm-mini"><div class="adm-mini-row deadline"><span>出願締切</span><b>' + esc(scheduleDateText(ev.date)) + ' ' + esc(relativeScheduleText(ev)) + '</b></div></div>';
   }
   function scheduleDashboardHTML(unis) {
-    var events = scheduleEvents(unis);
-    if (!events.length) {
-      return '<div class="adm-dashboard"><div class="adm-head"><div><h3>入試スケジュール</h3><p>志望校の編集画面から日程を登録できます。</p></div></div><div class="adm-empty">出願締切・試験日・合格発表・入学手続の日程はまだ登録されていません。</div></div>';
+    var allEvents = scheduleEvents(unis);
+    var applyEvents = allEvents.filter(function (e) { return e.key === 'applyDeadline'; });
+    var upcoming = applyEvents.filter(function (e) { return e.days !== null && e.days >= 0; });
+
+    var first = (unis || []).filter(function (u) { return (u.kind || 'sub') === 'first'; })[0] || null;
+    var firstBox = '';
+    if (first) {
+      var examDate = cleanSchedule(first.schedule).examDate;
+      if (examDate) {
+        var examDays = daysUntil(examDate);
+        var examText = examDays === 0 ? '今日が試験日' : (examDays > 0 ? '試験まであと' + examDays + '日' : '試験日から' + Math.abs(examDays) + '日');
+        firstBox = '<div class="first-exam-count"><span>第一志望</span><b>' + esc(uniDisplayLabel(first)) + '</b><strong>' + esc(examText) + '</strong><small>' + esc(scheduleDateText(examDate)) + '</small></div>';
+      } else {
+        firstBox = '<div class="first-exam-count muted"><span>第一志望</span><b>' + esc(uniDisplayLabel(first)) + '</b><strong>試験日未登録</strong><small>志望校の編集から試験日を登録できます</small></div>';
+      }
     }
-    var upcoming = events.filter(function (e) { return e.days !== null && e.days >= 0; });
-    var nextDeadline = upcoming.filter(function (e) { return e.deadline; })[0] || null;
-    var badge = nextDeadline ? '<div class="adm-next ' + urgencyClass(nextDeadline) + '">' + esc(nextDeadline.short) + ' ' + esc(relativeScheduleText(nextDeadline)) + '</div>' : '';
+
+    var nextDeadline = upcoming[0] || null;
+    var badge = nextDeadline ? '<div class="adm-next ' + urgencyClass(nextDeadline) + '">次の出願 ' + esc(relativeScheduleText(nextDeadline)) + '</div>' : '';
     var up = upcoming.slice(0,5).map(function (ev) {
       var uc = urgencyClass(ev);
-      return '<div class="adm-event"><div class="adm-event-date">' + esc(scheduleDateText(ev.date)) + '</div><div class="adm-event-main"><b>' + esc(ev.school) + '</b><span>' + esc(ev.label) + '</span></div><div class="adm-count ' + uc + '">' + esc(relativeScheduleText(ev)) + '</div></div>';
+      return '<div class="adm-event"><div class="adm-event-date">' + esc(scheduleDateText(ev.date)) + '</div><div class="adm-event-main"><b>' + esc(ev.school) + '</b><span>出願締切</span></div><div class="adm-count ' + uc + '">' + esc(relativeScheduleText(ev)) + '</div></div>';
     }).join('');
-    if (!up) up = '<div class="adm-empty">今後の日程はありません。</div>';
+    if (!up) up = '<div class="adm-empty">今後の出願締切はありません。</div>';
 
     var month = S.calendarMonth;
     if (!/^\d{4}-\d{2}$/.test(month || '')) {
-      month = (upcoming[0] ? upcoming[0].date : events[events.length-1].date).slice(0,7);
+      var now = new Date();
+      month = upcoming[0] ? upcoming[0].date.slice(0,7) : (now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'));
       S.calendarMonth = month;
     }
     var mp = month.split('-'), y = Number(mp[0]), m = Number(mp[1]);
-    var first = new Date(y,m-1,1,12), days = new Date(y,m,0,12).getDate(), lead = first.getDay();
+    var firstDay = new Date(y,m-1,1,12), days = new Date(y,m,0,12).getDate(), lead = firstDay.getDay();
     var byDay = {};
-    events.forEach(function (ev) {
+    applyEvents.forEach(function (ev) {
       if (ev.date.slice(0,7) !== month) return;
       var day = Number(ev.date.slice(8,10));
       (byDay[day] = byDay[day] || []).push(ev);
@@ -1353,13 +1366,18 @@ body {
       var evs = byDay[day] || [];
       var chips = evs.slice(0,2).map(function (ev) {
         var uc = urgencyClass(ev);
-        return '<span class="adm-chip' + (ev.deadline ? ' deadline' : '') + (uc==='urgent' ? ' urgent' : '') + '" title="' + esc(ev.school + ' ' + ev.label) + '">' + esc(ev.short) + '</span>';
+        return '<span class="adm-chip deadline' + (uc==='urgent' ? ' urgent' : '') + '" title="' + esc(ev.school + ' 出願締切') + '">' + esc(ev.school) + '</span>';
       }).join('');
       if (evs.length>2) chips += '<span class="adm-more">+' + (evs.length-2) + '</span>';
       cells += '<div class="adm-day' + (isToday ? ' today' : '') + '"><strong>' + day + '</strong>' + chips + '</div>';
     }
+
+    if (!applyEvents.length && !firstBox) {
+      return '<div class="adm-dashboard"><div class="adm-head"><div><h3>出願スケジュール</h3><p>志望校の編集画面から出願締切を登録できます。</p></div></div><div class="adm-empty">出願締切はまだ登録されていません。</div></div>';
+    }
     return '<div class="adm-dashboard">' +
-      '<div class="adm-head"><div><h3>入試スケジュール</h3><p>締切が近いものから確認できます。</p></div>' + badge + '</div>' +
+      firstBox +
+      '<div class="adm-head"><div><h3>出願スケジュール</h3><p>カレンダーには出願締切だけを表示します。</p></div>' + badge + '</div>' +
       '<div class="adm-upcoming">' + up + '</div>' +
       '<div class="adm-cal-head"><button class="adm-cal-nav" data-calnav="-1">‹</button><b>' + y + '年' + m + '月</b><button class="adm-cal-nav" data-calnav="1">›</button></div>' +
       '<div class="adm-week"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>' +
@@ -1389,6 +1407,7 @@ body {
         '<div class="field"><label>大学名</label><input id="e-name" value="' + esc(S.draft.name) + '"></div>' +
         '<div class="field"><label>学部</label><input id="e-fac" value="' + esc(S.draft.faculty) + '"></div>' +
       '</div>' +
+      '<div class="field"><label>入試方式（任意）</label><input id="e-method" value="' + esc(S.draft.method || '') + '" placeholder="例）一般選抜／共通テスト利用"></div>' +
       '<div class="field"><label>目標点（合計）</label><input id="e-target" type="number" inputmode="numeric" placeholder="例）210" value="' + esc(S.draft.target == null ? '' : S.draft.target) + '"></div>' +
       scheduleFieldsHTML('e', S.draft.schedule || {}) +
       subjectPickerHTML('e', S.draft.subjects || []) +
@@ -1407,6 +1426,7 @@ body {
           '<div class="field"><label>大学名</label><input id="n-name" placeholder="例）明治大学" autocomplete="off"></div>' +
           '<div class="field"><label>学部（任意）</label><input id="n-fac" placeholder="例）商学部" autocomplete="off"></div>' +
         '</div>' +
+        '<div class="field"><label>入試方式（任意）</label><input id="n-method" placeholder="例）一般選抜／共通テスト利用" autocomplete="off"></div>' +
         '<div class="field"><label>目標点（合計）</label><input id="n-target" type="number" inputmode="numeric" placeholder="例）210"></div>' +
         scheduleFieldsHTML('n', {}) +
         subjectPickerHTML('n', []) +
@@ -1646,7 +1666,7 @@ body {
     if (!u) {
       u = {
         id: 'u' + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36),
-        name: rec.univ, faculty: fac, kind: 'sub', target: null, minimums: {}, schedule: {}, subjects: []
+        name: rec.univ, faculty: fac, method: '', kind: 'sub', target: null, minimums: {}, schedule: {}, subjects: []
       };
       fresh.push(u);
       changed = true;
@@ -1738,7 +1758,7 @@ body {
       var k = u.kind || 'sub';
       if (S.delUid === u.id) {
         var n = S.myRecs.filter(function (r) { return r.univ === u.name && (r.faculty || '') === (u.faculty || ''); }).length;
-        return '<div class="wrow"><div class="wname">' + esc(uniLabel(u)) + '</div>' +
+        return '<div class="wrow"><div class="wname">' + esc(uniDisplayLabel(u)) + '</div>' +
           '<div class="delbox" style="margin:8px 0 0">' +
             '<p class="delwarn">この大学を一覧から消します。' +
               (n ? '記録' + n + '件も一緒に消えます。元に戻せません。' : '記録はまだありません。') + '</p>' +
@@ -1750,7 +1770,7 @@ body {
           '</div></div>';
       }
       return '<div class="wrow on">' +
-        '<div class="wname">' + esc(uniLabel(u)) +
+        '<div class="wname">' + esc(uniDisplayLabel(u)) +
           '<span>' + (u.subjects.length ? u.subjects.length + '科目' : '科目未登録') + '</span></div>' +
         '<div class="wpick">' +
           '<button class="wbtn' + (k === 'first' ? ' sel' : '') + '" data-kind="' + esc(u.id) + '|first">第一志望</button>' +
@@ -1781,7 +1801,7 @@ body {
       var k = u.kind || 'sub';
       if (S.delUid === u.id) {
         var n = S.myRecs.filter(function (r) { return r.univ === u.name && (r.faculty || '') === (u.faculty || ''); }).length;
-        return '<div class="wrow"><div class="wname">' + esc(uniLabel(u)) + '</div>' +
+        return '<div class="wrow"><div class="wname">' + esc(uniDisplayLabel(u)) + '</div>' +
           '<div class="delbox" style="margin:8px 0 0">' +
             '<p class="delwarn">この大学を一覧から消します。' +
               (n ? '記録' + n + '件も一緒に消えます。元に戻せません。' : '記録はまだありません。') + '</p>' +
@@ -1793,7 +1813,7 @@ body {
           '</div></div>';
       }
       return '<div class="wrow on">' +
-        '<div class="wname">' + esc(uniLabel(u)) +
+        '<div class="wname">' + esc(uniDisplayLabel(u)) +
           '<span>' + (u.subjects.length ? u.subjects.length + '科目' : '科目未登録') + '</span></div>' +
         '<div class="wpick">' +
           '<button class="wbtn' + (k === 'first' ? ' sel' : '') + '" data-kind="' + esc(u.id) + '|first">第一志望</button>' +
@@ -2043,7 +2063,7 @@ body {
         .sort(function (a, b) { return kindRank(a.kind || 'sub') - kindRank(b.kind || 'sub'); })
         .map(function (u) {
           return '<option value="' + esc(u.id) + '"' + (f.uniKey === u.id ? ' selected' : '') + '>' +
-            esc(uniLabel(u)) + '（' + KINDS[u.kind || 'sub'] + '）</option>';
+            esc(uniDisplayLabel(u)) + '（' + KINDS[u.kind || 'sub'] + '）</option>';
         }))
       .concat(['<option value="__other"' + (f.uniKey === '__other' ? ' selected' : '') + '>一覧にない（自分で入力）</option>'])
       .join('');
@@ -2132,7 +2152,7 @@ body {
             }).join('') + '</div>'
           : '<p class="note" style="margin:8px 0 0">科目が未登録です。</p>';
         return '<div class="uni">' +
-          '<div class="uni-h"><div class="uni-n">' + esc(uniLabel(u)) +
+          '<div class="uni-h"><div class="uni-n">' + esc(uniDisplayLabel(u)) +
           '<em class="kbadge">' + KINDS[u.kind || 'sub'] + '</em></div>' +
           '<div><button class="barlink" data-edit="' + esc(u.id) + '">編集</button>　' +
           '<button class="barlink" data-delu="' + esc(u.id) + '">削除</button></div></div>' +
@@ -2197,7 +2217,7 @@ body {
       var allRecs = S.all[st.id] || [];
       var unis = S.unisAll[st.id] || [];
       var first = unis.filter(function (u) { return (u.kind || 'sub') === 'first'; })[0];
-      var firstLabel = first ? uniLabel(first) : '第一志望 未登録';
+      var firstLabel = first ? uniDisplayLabel(first) : '第一志望 未登録';
       var latest = allRecs.slice().sort(function (a, b) { return Number(b.at || 0) - Number(a.at || 0); })[0];
       var latestText = latest ? (latest.date || '日付なし') : 'まだ記録なし';
 
@@ -2759,18 +2779,19 @@ body {
     on('#n-add', 'onclick', async function () {
       var name = (root.querySelector('#n-name').value || '').trim();
       var fac = (root.querySelector('#n-fac').value || '').trim();
+      var method = ((root.querySelector('#n-method') || {}).value || '').trim();
       var text = root.querySelector('#n-text').value || '';
       if (!name) { S.error = '大学名を入力してください。'; render(); return; }
       if (!S.editSid) { S.error = '先に生徒を選んでください。'; render(); return; }
       var fresh = parse(await sGet(unisKey(S.editSid), true), []);
       var dup = fresh.filter(function (u) { return u.name === name && (u.faculty || '') === fac; })[0];
       if (dup) {
-        S.error = esc(uniLabel(dup)) + ' はすでに登録されています。一覧から選んでください。';
+        S.error = esc(uniDisplayLabel(dup)) + ' はすでに登録されています。一覧から選んでください。';
         S.unis = fresh; render(); return;
       }
       var nu = {
         id: 'u' + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36),
-        name: name, faculty: fac, kind: (root.querySelector('#n-kind') || {}).value || 'sub',
+        name: name, faculty: fac, method: method, kind: (root.querySelector('#n-kind') || {}).value || 'sub',
         target: (root.querySelector('#n-target') && root.querySelector('#n-target').value !== '') ? Number(root.querySelector('#n-target').value) : null,
         minimums: {},
         schedule: readScheduleForm('n'),
@@ -2792,7 +2813,7 @@ body {
         var u = findUni(b.getAttribute('data-edit'));
         if (!u) return;
         S.editUni = u.id;
-        S.draft = { name: u.name, faculty: u.faculty || '', kind: u.kind || 'sub', target: u.target == null ? '' : u.target, schedule: cleanSchedule(u.schedule), subjects: (u.subjects || []).slice() };
+        S.draft = { name: u.name, faculty: u.faculty || '', method: u.method || '', kind: u.kind || 'sub', target: u.target == null ? '' : u.target, schedule: cleanSchedule(u.schedule), subjects: (u.subjects || []).slice() };
         render();
       };
     });
@@ -2802,11 +2823,12 @@ body {
       var name = (root.querySelector('#e-name').value || '').trim();
       if (!name) { S.error = '大学名を入力してください。'; render(); return; }
       var fac = (root.querySelector('#e-fac').value || '').trim();
+      var method = ((root.querySelector('#e-method') || {}).value || '').trim();
       var text = root.querySelector('#e-text').value || '';
       var fresh = parse(await sGet(unisKey(S.editSid), true), []);
       fresh = fresh.map(function (u) {
         if (u.id !== S.editUni) return u;
-        return { id: u.id, name: name, faculty: fac,
+        return { id: u.id, name: name, faculty: fac, method: method,
           kind: (root.querySelector('#e-kind') || {}).value || 'sub',
           target: (root.querySelector('#e-target') && root.querySelector('#e-target').value !== '') ? Number(root.querySelector('#e-target').value) : null,
           minimums: u.minimums || {},
