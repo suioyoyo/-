@@ -1840,6 +1840,40 @@ body {
     return '<div class="mode-switch">' +
       '<button ' + attr + '="past" aria-selected="' + (key === 'past') + '">過去問</button>' +
       '<button ' + attr + '="seminar" aria-selected="' + (key === 'seminar') + '">英語テストゼミ</button>' +
+      '<button ' + attr + '="admissions" aria-selected="' + (key === 'admissions') + '">出願</button>' +
+    '</div>';
+  }
+
+  function studentAdmissionsView() {
+    return '<div class="wrap">' +
+      seminarModeTabs('student') +
+      scheduleDashboardHTML(S.unis) +
+      inlineWishHTML() +
+      '<p class="note" style="margin-top:14px"><button class="barlink" id="switchme">別の名前に切り替える</button></p>' +
+    '</div>';
+  }
+
+  function teacherAdmissionsView() {
+    if (S.teacherStudent && !S.roster.some(function (st) { return st.id === S.teacherStudent; })) S.teacherStudent = '';
+    if (!S.teacherStudent && S.roster.length) S.teacherStudent = S.roster[0].id;
+
+    var tabs = S.roster.map(function (st) {
+      return '<button class="teacher-student-tab" data-tstudent="' + esc(st.id) + '" aria-selected="' + (S.teacherStudent === st.id ? 'true' : 'false') + '">' +
+        esc(st.name) + '</button>';
+    }).join('');
+
+    var st = S.roster.filter(function (x) { return x.id === S.teacherStudent; })[0] || null;
+    var unis = st ? (S.unisAll[st.id] || []) : [];
+    var body = st
+      ? scheduleDashboardHTML(unis)
+      : '<div class="empty">生徒がまだ登録されていません。</div>';
+
+    return '<div class="wrap teacher-dashboard">' +
+      seminarModeTabs('teacher') +
+      '<div class="teacher-hero"><div><h2>出願</h2><p>生徒ごとの出願締切と第一志望の試験日を確認できます。</p></div></div>' +
+      (tabs ? '<div class="teacher-student-tabs">' + tabs + '</div>' : '') +
+      body +
+      (st ? '<div class="teacher-adminline"><button class="barlink" id="admissions-manage">大学・入試日程を編集</button></div>' : '') +
     '</div>';
   }
 
@@ -2053,6 +2087,7 @@ body {
 
 
     if (S.studentPanel === 'seminar') return studentSeminarView();
+    if (S.studentPanel === 'admissions') return studentAdmissionsView();
 
     var f = S.form;
     var uni = findUni(f.uniKey);
@@ -2117,7 +2152,6 @@ body {
 
     return '<div class="wrap">' +
       seminarModeTabs('student') +
-      scheduleDashboardHTML(S.unis) +
       inlineWishHTML() +
       ctBlock +
       '<div class="sec-title">' + esc(S.me.name) + 'さんの記録（' + S.myRecs.length + '件）</div>' +
@@ -2189,6 +2223,7 @@ body {
       '</div>';
     }
     if (S.teacherPanel === 'seminar') return teacherSeminarView();
+    if (S.teacherPanel === 'admissions') return teacherAdmissionsView();
     if (S.tTab === 'unis') return uniView();
 
     var allFlat = [];
@@ -2248,7 +2283,7 @@ body {
           '</div>' +
           (!st.pin ? '<p class="note" style="margin:8px 0 0">この生徒は旧保存形式です。本人が次回PINでログインすると、ここに4桁PINが表示されます。</p>' : '') +
         '</div>' +
-        '<div class="teacher-single-body teacher-readonly">' + scheduleDashboardHTML(unis) + detail + delBlockHTML(st) + '</div>' +
+        '<div class="teacher-single-body teacher-readonly">' + detail + delBlockHTML(st) + '</div>' +
       '</div>';
     }
 
@@ -2377,6 +2412,7 @@ body {
       b.onclick = async function () {
         S.teacherPanel = b.getAttribute('data-teacher-panel') || 'past'; S.error = '';
         if (S.teacherPanel === 'seminar') await loadSeminar();
+        if (S.teacherPanel === 'admissions') await refreshTeacher();
         render();
       };
     });
@@ -2472,6 +2508,15 @@ body {
         S.error = '';
         render();
       };
+    });
+    on('#admissions-manage', 'onclick', async function () {
+      if (!S.teacherStudent) return;
+      S.teacherPanel = 'past';
+      S.tTab = 'unis';
+      S.uniSid = S.teacherStudent;
+      S.editUni = null;
+      await loadUnis(S.uniSid);
+      render();
     });
 
     root.querySelectorAll('[data-pick]').forEach(function (b) {
