@@ -993,7 +993,7 @@ body {
 .meet-section{border:1px solid var(--rule);background:#fff;border-radius:14px;padding:12px}
 .meet-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:9px}.meet-section-head h3{margin:0;font-size:14px}.meet-section-head p{margin:2px 0 0;font-size:9px;color:var(--ink-soft)}.meet-school-count{font-size:10px;font-weight:900;color:var(--ink-soft);white-space:nowrap}
 .meet-school-list{display:grid;gap:7px}
-.meet-school{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;align-items:center;border:1px solid #E6E8EB;border-radius:12px;padding:10px;background:#FBFCFD}
+.meet-school{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;align-items:center;border:1px solid #E6E8EB;border-radius:12px;padding:10px;background:#FBFCFD;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}.meet-school:hover{border-color:#C9CED6;box-shadow:0 3px 12px rgba(31,41,55,.07)}.meet-school:active{transform:scale(.992)}.meet-school:focus-visible{outline:2px solid #5B77A3;outline-offset:2px}
 .meet-school.first{background:#FFF8F8;border-color:#E8C2C4;box-shadow:inset 3px 0 0 var(--aka)}
 .meet-school-main{min-width:0}.meet-school-top{display:flex;align-items:center;gap:6px;min-width:0}.meet-priority{flex:0 0 auto;font-size:8px;font-weight:900;border-radius:999px;padding:3px 6px;background:#EEF0F4;color:#69717E}.meet-priority.first{background:#F6E7E7;color:#A81B22}
 .meet-school-name{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meet-school-method{margin-top:3px;font-size:9px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1413,13 +1413,12 @@ body {
       var u=x.u, firstKind=(u.kind || 'sub')==='first';
       var rel=x.days===null?'未登録':(x.days<0?'締切済':(x.days===0?'今日':(x.days===1?'明日':'あと'+x.days+'日')));
       var cls=x.days===null?'':(x.days<0?'past':(x.days<=7?'urgent':(x.days<=30?'soon':'')));
-      return '<div class="meet-school' + (firstKind?' first':'') + '">' +
+      return '<div class="meet-school' + (firstKind?' first':'') + '" data-adm-edit="' + esc(u.id) + '" role="button" tabindex="0" aria-label="' + esc(uniLabel(u)) + 'の日程を編集">' +
         '<div class="meet-school-main"><div class="meet-school-top">' +
           '<span class="meet-priority' + (firstKind?' first':'') + '">' + (firstKind?'第一志望':'併願') + '</span>' +
           '<span class="meet-school-name">' + esc(uniLabel(u)) + '</span>' +
         '</div><div class="meet-school-method">' + esc(u.method || '入試方式 未登録') + '</div></div>' +
         '<div class="meet-deadline"><b>' + (x.deadline?esc(scheduleDateText(x.deadline)):'未登録') + '</b><span class="' + cls + '">' + esc(rel) + '</span></div>' +
-        '<div class="meet-school-actions"><button class="meet-edit" data-adm-edit="' + esc(u.id) + '">この大学の日程を編集</button></div>' +
       '</div>';
     }).join('') : '<div class="adm-empty">志望校がまだ登録されていません。</div>';
 
@@ -2541,6 +2540,9 @@ body {
     });
 
     root.querySelectorAll('[data-adm-edit]').forEach(function (b) {
+      b.onkeydown = function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.click(); }
+      };
       b.onclick = async function () {
         var uid = b.getAttribute('data-adm-edit') || '';
         if (!uid) return;
