@@ -991,7 +991,7 @@ body {
 .meet-stat{border:1px solid var(--rule);border-radius:12px;background:#fff;padding:10px 9px}.meet-stat b{display:block;font-size:16px;line-height:1.15}.meet-stat span{display:block;margin-top:3px;font-size:9px;color:var(--ink-soft)}
 .meet-stat.warn{background:#FFF8EA;border-color:#F0D89A}.meet-stat.danger{background:#FFF1F0;border-color:#F0B7B2}.meet-stat.ok{background:#F1F8F4;border-color:#BFDCCB}
 .meet-section{border:1px solid var(--rule);background:#fff;border-radius:14px;padding:12px}
-.meet-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:9px}.meet-section-head h3{margin:0;font-size:14px}.meet-section-head p{margin:2px 0 0;font-size:9px;color:var(--ink-soft)}
+.meet-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:9px}.meet-section-head h3{margin:0;font-size:14px}.meet-section-head p{margin:2px 0 0;font-size:9px;color:var(--ink-soft)}.meet-school-count{font-size:10px;font-weight:900;color:var(--ink-soft);white-space:nowrap}
 .meet-school-list{display:grid;gap:7px}
 .meet-school{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;align-items:center;border:1px solid #E6E8EB;border-radius:12px;padding:10px;background:#FBFCFD}
 .meet-school.first{background:#FFF8F8;border-color:#E8C2C4;box-shadow:inset 3px 0 0 var(--aka)}
@@ -1405,13 +1405,6 @@ body {
         '</div>'
       : '<div class="meet-hero"><div class="meet-kicker">FIRST CHOICE</div><div class="meet-first-name">第一志望が未登録です</div></div>';
 
-    var nextClass = next && next.days <= 7 ? ' danger' : (next && next.days <= 30 ? ' warn' : ' ok');
-    var summary = '<div class="meet-summary">' +
-      '<div class="meet-stat' + nextClass + '"><b>' + (next ? next.days + '日' : '—') + '</b><span>次の出願まで</span></div>' +
-      '<div class="meet-stat' + (missing ? ' warn' : ' ok') + '"><b>' + completed + '/' + schools.length + '</b><span>締切入力済み</span></div>' +
-      '<div class="meet-stat"><b>' + schools.length + '校</b><span>志望校登録</span></div>' +
-    '</div>';
-
     var missingBox = missing
       ? '<div class="meet-missing">⚠ 出願締切が未登録の大学が ' + missing + ' 校あります。面談中に確認すると安心です。</div>'
       : '';
@@ -1466,9 +1459,8 @@ body {
 
     return '<div class="meet-wrap">' +
       firstHero +
-      summary +
       '<div class="meet-section">' +
-        '<div class="meet-section-head"><div><h3>出願チェック</h3><p>面談では上から順に確認すればOK</p></div></div>' +
+        '<div class="meet-section-head"><div><h3>出願チェック</h3><p>面談では上から順に確認すればOK</p></div><span class="meet-school-count">' + schools.length + '校</span></div>' +
         missingBox + '<div class="meet-school-list">' + schoolRows + '</div>' +
         calendar +
       '</div>' +
