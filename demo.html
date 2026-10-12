@@ -888,6 +888,8 @@ body {
 .mode-switch { display:flex; gap:6px; margin:0 0 16px; padding:4px; background:#F0F2F5; border-radius:12px; }
 .mode-switch button { flex:1; border:0; background:transparent; border-radius:9px; padding:9px 8px; font:inherit; font-size:12px; font-weight:800; color:var(--ink-soft); cursor:pointer; }
 .mode-switch button[aria-selected="true"] { background:#fff; color:var(--ink); box-shadow:0 2px 8px rgba(31,41,55,.08); }
+.main-four-tabs button{font-size:10.5px;padding-left:5px;padding-right:5px}
+@media(max-width:420px){.main-four-tabs{gap:3px;padding:3px}.main-four-tabs button{font-size:9.5px;letter-spacing:-.02em;padding:8px 2px}}
 .seminar-head { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin:2px 0 14px; }
 .seminar-head h2 { margin:0; font-size:21px; }
 .seminar-head p { margin:4px 0 0; font-size:11px; color:var(--ink-soft); }
@@ -1413,7 +1415,7 @@ body {
       var u=x.u, firstKind=(u.kind || 'sub')==='first';
       var rel=x.days===null?'未登録':(x.days<0?'締切済':(x.days===0?'今日':(x.days===1?'明日':'あと'+x.days+'日')));
       var cls=x.days===null?'':(x.days<0?'past':(x.days<=7?'urgent':(x.days<=30?'soon':'')));
-      return '<div class="meet-school' + (firstKind?' first':'') + '" data-adm-edit="' + esc(u.id) + '" role="button" tabindex="0" aria-label="' + esc(uniLabel(u)) + 'の日程を編集">' +
+      return '<div class="meet-school' + (firstKind?' first':'') + '" data-adm-edit="' + esc(u.id) + '" role="button" tabindex="0" aria-label="' + esc(uniLabel(u)) + 'を大学登録で編集">' +
         '<div class="meet-school-main"><div class="meet-school-top">' +
           '<span class="meet-priority' + (firstKind?' first':'') + '">' + (firstKind?'第一志望':'併願') + '</span>' +
           '<span class="meet-school-name">' + esc(uniLabel(u)) + '</span>' +
@@ -1868,7 +1870,8 @@ body {
 
     return '<div class="wrap">' +
       seminarModeTabs('student') +
-      '<p class="note" style="margin:4px 0 14px">自分が受ける大学だけを登録してください。第一志望は10年分、併願校は5年分の年度が表に並びます。ここは他の生徒とは完全に別で、あなたの登録は誰にも影響しません。</p>' +
+      '<div class="teacher-hero" style="margin-bottom:12px"><div><h2>大学登録</h2><p>大学名・学部・入試方式・科目・入試日程をここでまとめて管理します。</p></div></div>' +
+      '<p class="note" style="margin:4px 0 14px">登録した内容は「過去問」と「受験カレンダー」に自動で反映されます。</p>' +
       (editing ? editing : (S.unis.length ? '<div class="wlist">' + rows + '</div>'
         : '<div class="empty">まだ登録がありません。下のフォームから受ける大学を追加してください。</div>')) +
       '<div class="sec-title">大学を追加する</div>' +
@@ -1919,19 +1922,21 @@ body {
   function seminarModeTabs(which) {
     var key = which === 'teacher' ? S.teacherPanel : S.studentPanel;
     var attr = which === 'teacher' ? 'data-teacher-panel' : 'data-student-panel';
-    return '<div class="mode-switch">' +
+    return '<div class="mode-switch main-four-tabs">' +
+      '<button ' + attr + '="universities" aria-selected="' + (key === 'universities') + '">大学登録</button>' +
       '<button ' + attr + '="past" aria-selected="' + (key === 'past') + '">過去問</button>' +
       '<button ' + attr + '="seminar" aria-selected="' + (key === 'seminar') + '">英語テストゼミ</button>' +
-      '<button ' + attr + '="admissions" aria-selected="' + (key === 'admissions') + '">出願</button>' +
+      '<button ' + attr + '="calendar" aria-selected="' + (key === 'calendar') + '">受験カレンダー</button>' +
     '</div>';
   }
 
   function studentAdmissionsView() {
     return '<div class="wrap">' +
       seminarModeTabs('student') +
+      '<div class="teacher-hero" style="margin-bottom:12px"><div><h2>受験カレンダー</h2><p>出願締切と第一志望の試験日を、面談で確認しやすくまとめています。</p></div></div>' +
       scheduleDashboardHTML(S.unis) +
-      inlineWishHTML() +
-      '<p class="note" style="margin-top:14px"><button class="barlink" id="switchme">別の名前に切り替える</button></p>' +
+      '<p class="note" style="margin-top:14px">大学名・学部・入試方式・科目・日程の変更は「大学登録」タブからできます。</p>' +
+      '<p class="note" style="margin-top:8px"><button class="barlink" id="switchme">別の名前に切り替える</button></p>' +
     '</div>';
   }
 
@@ -1952,7 +1957,7 @@ body {
 
     return '<div class="wrap teacher-dashboard">' +
       seminarModeTabs('teacher') +
-      '<div class="teacher-hero"><div><h2>出願</h2><p>生徒ごとの出願締切と第一志望の試験日を確認できます。</p></div></div>' +
+      '<div class="teacher-hero"><div><h2>受験カレンダー</h2><p>生徒ごとの出願締切と第一志望の試験日を確認できます。</p></div></div>' +
       (tabs ? '<div class="teacher-student-tabs">' + tabs + '</div>' : '') +
       body +
       (st ? '<div class="teacher-adminline"><button class="barlink" id="admissions-manage">大学・入試日程を編集</button></div>' : '') +
@@ -2168,8 +2173,9 @@ body {
     }
 
 
+    if (S.studentPanel === 'universities') return wishView();
     if (S.studentPanel === 'seminar') return studentSeminarView();
-    if (S.studentPanel === 'admissions') return studentAdmissionsView();
+    if (S.studentPanel === 'calendar') return studentAdmissionsView();
 
     var f = S.form;
     var uni = findUni(f.uniKey);
@@ -2234,7 +2240,6 @@ body {
 
     return '<div class="wrap">' +
       seminarModeTabs('student') +
-      inlineWishHTML() +
       ctBlock +
       '<div class="sec-title">' + esc(S.me.name) + 'さんの記録（' + S.myRecs.length + '件）</div>' +
       list +
@@ -2278,10 +2283,8 @@ body {
     }
 
     return '<div class="wrap">' +
-      '<div class="subtabs">' +
-        '<button data-ttab="records" aria-selected="false">記録を見る</button>' +
-        '<button data-ttab="unis" aria-selected="true">大学・科目・日程</button>' +
-      '</div>' +
+      seminarModeTabs('teacher') +
+      '<div class="teacher-hero"><div><h2>大学登録</h2><p>生徒ごとの大学名・学部・入試方式・科目・入試日程を管理します。</p></div></div>' +
       '<div class="field"><select id="usel">' + opts + '</select></div>' +
       body +
       (S.uniSid && !S.editUni ? '<div class="sec-title">この生徒に大学を追加する</div>' + addUniFormHTML() : '') +
@@ -2304,8 +2307,9 @@ body {
         '<p class="note" style="margin-top:12px">生徒の入力画面と分けるための簡易的な鍵です。厳密なセキュリティではありません。</p>' +
       '</div>';
     }
+    if (S.teacherPanel === 'universities') return uniView();
     if (S.teacherPanel === 'seminar') return teacherSeminarView();
-    if (S.teacherPanel === 'admissions') return teacherAdmissionsView();
+    if (S.teacherPanel === 'calendar') return teacherAdmissionsView();
     if (S.tTab === 'unis') return uniView();
 
     var allFlat = [];
@@ -2383,7 +2387,7 @@ body {
         '<button class="barlink" id="teacher-add-student">生徒を追加</button>' +
         '<button class="barlink" id="reload">最新の入力を読み込む</button>' +
         '<button class="barlink" id="csv">CSVで書き出す</button>' +
-        '<button class="barlink teacher-manage-link" data-ttab="unis">大学・科目・日程を管理</button>' +
+
       '</div>' +
       '<div id="csvbox"></div>' +
     '</div>';
@@ -2492,9 +2496,14 @@ body {
     });
     root.querySelectorAll('[data-teacher-panel]').forEach(function (b) {
       b.onclick = async function () {
-        S.teacherPanel = b.getAttribute('data-teacher-panel') || 'past'; S.error = '';
+        S.teacherPanel = b.getAttribute('data-teacher-panel') || 'past'; S.error = ''; S.editUni = null;
         if (S.teacherPanel === 'seminar') await loadSeminar();
-        if (S.teacherPanel === 'admissions') await refreshTeacher();
+        if (S.teacherPanel === 'calendar') await refreshTeacher();
+        if (S.teacherPanel === 'universities') {
+          await refreshTeacher();
+          if (!S.uniSid && S.roster.length) S.uniSid = S.teacherStudent || S.roster[0].id;
+          if (S.uniSid) await loadUnis(S.uniSid);
+        }
         render();
       };
     });
@@ -2546,21 +2555,25 @@ body {
       b.onclick = async function () {
         var uid = b.getAttribute('data-adm-edit') || '';
         if (!uid) return;
+
         if (S.tab === 'teacher') {
-          S.teacherPanel = 'past';
-          S.tTab = 'unis';
+          S.teacherPanel = 'universities';
           S.uniSid = S.teacherStudent;
           await loadUnis(S.uniSid);
-          S.editUni = uid;
-          render();
-          return;
+        } else {
+          S.studentPanel = 'universities';
         }
-        S.editUni = uid;
+
+        var u = S.unis.filter(function (x) { return x.id === uid; })[0];
+        if (u) {
+          S.editUni = uid;
+          S.draft = {
+            name: u.name, faculty: u.faculty || '', method: u.method || '',
+            kind: u.kind || 'sub', target: u.target == null ? '' : u.target,
+            schedule: cleanSchedule(u.schedule), subjects: (u.subjects || []).slice()
+          };
+        }
         render();
-        setTimeout(function () {
-          var target = root.querySelector('.inline-wish');
-          if (target && target.scrollIntoView) target.scrollIntoView({ behavior:'smooth', block:'start' });
-        }, 0);
       };
     });
 
