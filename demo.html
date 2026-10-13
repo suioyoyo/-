@@ -1043,6 +1043,10 @@ body {
 
 .reg-first-only{background:transparent}.reg-first-button{display:block;width:100%;border:0;border-radius:12px;background:linear-gradient(135deg,#8E2F2B,#B24C43);color:#fff;padding:16px;font-size:15px;font-weight:900;cursor:pointer;text-align:center}.reg-first-only .reg-inline-editor{margin-top:8px;border-radius:12px}
 .mx-add-year{padding:8px 12px 12px;text-align:center}.mx-add-year button{border:1px dashed #AEBBD0;background:#F5F8FC;border-radius:9px;padding:9px 18px;color:#35577C;font-size:11px;font-weight:800;cursor:pointer}
+
+/* Calendar expanded dates: one compact horizontal strip, scroll only inside the strip on narrow screens */
+.meet-school-detail{padding:7px 9px}.meet-detail-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.meet-detail-item{min-width:0;padding:7px 5px;border-radius:7px}.meet-detail-item span{font-size:8px;line-height:1.3;white-space:normal}.meet-detail-item b{font-size:9px;white-space:nowrap}.meet-detail-item:last-child:nth-child(odd){grid-column:auto}
+@media(max-width:600px){.meet-school-detail{overflow-x:auto;-webkit-overflow-scrolling:touch}.meet-detail-grid{min-width:550px;grid-template-columns:repeat(5,minmax(100px,1fr))}}
 </style>
 
 <script>
@@ -1924,7 +1928,7 @@ body {
           (sc.examDate ? '<span>試験 ' + esc(scheduleDateText(sc.examDate)) + '</span>' : '<span>試験日 未登録</span>') +
         '</div>' +
         '<div class="reg-subject-chips">' + (chips || '<span>科目未登録</span>') + '</div>' +
-        '<span class="reg-card-edit">編集 ›</span>' +
+        '<span class="reg-card-edit">' + (editing ? '閉じる ⌃' : '編集 ⌄') + '</span>' +
       '</div>' +
       '<div class="reg-card-foot"><button class="barlink" data-delu="' + esc(u.id) + '">削除</button></div>' +
       (editing ? editUniHTML(u) : '') +
@@ -3034,6 +3038,7 @@ body {
       b.onclick = function () {
         var u = findUni(b.getAttribute('data-edit'));
         if (!u) return;
+        if (S.editUni === u.id) { S.editUni = null; render(); return; }
         S.editUni = u.id;
         S.draft = { name: u.name, faculty: u.faculty || '', method: u.method || '', kind: u.kind || 'sub', target: u.target == null ? '' : u.target, schedule: cleanSchedule(u.schedule), subjects: (u.subjects || []).slice() };
         render();
