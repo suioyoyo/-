@@ -1040,6 +1040,8 @@ body {
 .reg-add-toggle{width:100%;border:1px dashed #AEB6C2;background:#fff;color:#334155;border-radius:14px;padding:13px 14px;font:inherit;font-size:11px;font-weight:900;cursor:pointer;text-align:center}.reg-add-toggle:active{transform:scale(.995)}
 .reg-add-box.open{border:1px solid #D5DAE1;border-radius:14px;background:#fff;overflow:hidden}.reg-add-top{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border-bottom:1px solid #ECEEF1}.reg-add-top b{font-size:11px}.reg-add-close{border:0;background:#F1F3F6;color:#5F6875;border-radius:999px;width:27px;height:27px;font:800 15px/1 var(--gothic);cursor:pointer}
 
+
+.reg-first-only{background:transparent}.reg-first-button{display:block;width:100%;border:0;border-radius:12px;background:linear-gradient(135deg,#8E2F2B,#B24C43);color:#fff;padding:16px;font-size:15px;font-weight:900;cursor:pointer;text-align:center}.reg-first-only .reg-inline-editor{margin-top:8px;border-radius:12px}
 </style>
 
 <script>
@@ -1931,7 +1933,7 @@ body {
     var subs = S.unis.filter(function (u) { return (u.kind || 'sub') !== 'first'; });
     return '<div class="reg-section reg-first-section">' +
       '<div class="reg-first-head"><span class="first-choice-chip">第一志望</span></div>' +
-      (first ? registrationCardHTML(first) : '<div class="reg-first-empty">第一志望が未登録です。下の「大学を追加する」から第一志望を選んで登録してください。</div>') +
+      (first ? '<div class="reg-first-only"><button type="button" class="reg-first-button" data-edit="' + esc(first.id) + '">第一志望</button>' + (S.editUni === first.id ? editUniHTML(first) : '') + '</div>' : '<div class="reg-first-empty">第一志望が未登録です。下の「大学を追加する」から第一志望を選んで登録してください。</div>') +
     '</div>' +
     '<div class="reg-section">' +
       '<div class="reg-section-head"><div><b>併願校</b><span>' + subs.length + '校</span></div></div>' +
