@@ -1042,6 +1042,7 @@ body {
 
 
 .reg-first-only{background:transparent}.reg-first-button{display:block;width:100%;border:0;border-radius:12px;background:linear-gradient(135deg,#8E2F2B,#B24C43);color:#fff;padding:16px;font-size:15px;font-weight:900;cursor:pointer;text-align:center}.reg-first-only .reg-inline-editor{margin-top:8px;border-radius:12px}
+.mx-add-year{padding:8px 12px 12px;text-align:center}.mx-add-year button{border:1px dashed #AEBBD0;background:#F5F8FC;border-radius:9px;padding:9px 18px;color:#35577C;font-size:11px;font-weight:800;cursor:pointer}
 </style>
 
 <script>
@@ -1083,6 +1084,7 @@ body {
     quickSaving: false,
     authSid: '',
     mxOpen: {},
+    extraYears: {},
     teacherFilter: 'all',
     teacherStudent: '',
     studentPanel: 'past',
@@ -1688,6 +1690,8 @@ body {
     }
 
     var years = yearsFor(kind);
+    var extraCount = Number(S.extraYears[label] || 0);
+    for (var ex=1;ex<=extraCount;ex++) years.push(String(LATEST_YEAR - (kind === 'first' ? 10 : 5) - ex + 1));
     recs.forEach(function (r) { var y = r.year || '—'; if (years.indexOf(y) < 0) years.push(y); });
     years.sort(function (a, b) { return String(b).localeCompare(String(a)); });
 
@@ -1803,7 +1807,8 @@ body {
         '<span class="mx-title-stack">' + (kind === 'center' ? '<small>COMMON TEST</small>' : (kind === 'first' ? '<small>FIRST CHOICE</small>' : '')) + '<strong>' + esc(label) + '</strong></span>' +
         '<em>' + KINDS[kind] + '</em></div>' +
       (isOpen ? '<div class="mx-scroll"><table class="mx-t"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
-      '<div class="mx-f">' + done + ' / ' + total + ' マス済み　残り' + (total - done) + targetNote + '</div>' : '') +
+      '<div class="mx-f">' + done + ' / ' + total + ' マス済み　残り' + (total - done) + targetNote + '</div>' +
+      '<div class="mx-add-year"><button type="button" data-add-year="' + esc(label) + '">＋ 年度を追加する</button></div>' : '') +
     '</div>';
   }
 
@@ -2425,6 +2430,9 @@ body {
 
   /* ---------- render ---------- */
   function render() {
+    var scrollMemory = [];
+    root.querySelectorAll('.mx-scroll').forEach(function(el,i){var h=el.closest('.mx');var k=h&&h.querySelector('[data-mxtoggle]');scrollMemory.push({key:k?k.getAttribute('data-mxtoggle'):String(i),left:el.scrollLeft});});
+    var pageX=window.scrollX, pageY=window.scrollY;
     if (S.loading) { root.innerHTML = '<div class="boot">読み込み中…</div>'; return; }
     var head = '<div class="hd">' +
       '<h1><span class="mark"></span>過去問の記録</h1>' +
@@ -2440,6 +2448,8 @@ body {
       (S.tab === 'student' ? studentView() : teacherView()) +
       (S.toast ? '<div class="toast">' + esc(S.toast) + '</div>' : '');
     bind();
+    root.querySelectorAll('.mx-scroll').forEach(function(el,i){var h=el.closest('.mx');var k=h&&h.querySelector('[data-mxtoggle]');var key=k?k.getAttribute('data-mxtoggle'):String(i);var saved=scrollMemory.filter(function(x){return x.key===key;})[0];if(saved)el.scrollLeft=saved.left;});
+    if(scrollMemory.length)window.scrollTo(pageX,pageY);
   }
   function flash(m) {
     S.toast = m; render();
@@ -2804,6 +2814,7 @@ body {
       }
     });
 
+    root.querySelectorAll('[data-add-year]').forEach(function(b){ b.onclick=function(){ var label=b.getAttribute('data-add-year'); S.extraYears[label]=(Number(S.extraYears[label]||0)+1); render(); }; });
     root.querySelectorAll('[data-mxtoggle]').forEach(function (head) {
       head.onclick = function () {
         var label = head.getAttribute('data-mxtoggle') || '';
