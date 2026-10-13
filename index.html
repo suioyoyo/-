@@ -3310,8 +3310,10 @@ body {
 
   (async function init() {
     try {
-      await loadRoster(); await loadMe(); await loadMyRecs(); await loadCT(); await loadUnis(); await loadSeminar();
-      S.pinExists = !!(await sGet('teacher-pin', true));
+      await loadRoster(); await loadMe();
+      // The remaining reads are independent; avoid serial startup waits.
+      await Promise.all([loadMyRecs(), loadCT(), loadUnis(), loadSeminar(),
+        sGet('teacher-pin', true).then(function(pin){ S.pinExists = !!pin; })]);
     } catch (e) {
       S.error = 'データを読み込めませんでした。ページを開き直してください。';
     }
