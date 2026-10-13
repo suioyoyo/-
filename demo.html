@@ -1060,6 +1060,11 @@ body {
 @media(max-width:600px){.meet-school-detail{overflow:visible}.meet-detail-grid{min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}.meet-detail-item:last-child:nth-child(odd){grid-column:1/-1}}
 
 .meet-center-countdown{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #B8D4EE;background:#EFF6FF;border-radius:14px;padding:12px 14px;min-width:0}.meet-center-countdown>div{min-width:0}.meet-center-label{display:block;font-size:10px;font-weight:900;color:#1E4E82}.meet-center-countdown b{display:block;margin-top:4px;font-size:10px;color:#506B89}.meet-center-days{flex-shrink:0}.meet-center-days strong{font-size:17px;color:#174B80;white-space:nowrap}@media(max-width:390px){.meet-center-countdown{flex-wrap:wrap}.meet-center-days strong{font-size:16px}}
+/* Calendar: readable university and faculty labels on narrow screens */
+.adm-chip{font-size:clamp(9px,2.5vw,12px);line-height:1.35;white-space:normal;overflow-wrap:anywhere;word-break:normal;overflow:visible;text-overflow:clip;padding:3px 2px}
+.adm-day{overflow:visible;min-width:0;height:auto;min-height:60px}
+.adm-cal{align-items:stretch}
+@media(max-width:390px){.adm-chip{font-size:9px}.adm-day{padding:2px}}
 </style>
 
 <script>
@@ -1508,7 +1513,7 @@ body {
     for(var day=1;day<=days;day++){
       var isToday=td.getFullYear()===y&&td.getMonth()===m-1&&td.getDate()===day, evs=byDay[day]||[];
       var chips=evs.slice(0,2).map(function(ev){
-        return '<span class="adm-chip deadline' + (ev.days!==null&&ev.days<=7&&ev.days>=0?' urgent':'') + '" title="' + esc(ev.school+' 出願締切') + '">' + esc(ev.school.replace(/大学.*/, '大')) + '</span>';
+        return '<span class="adm-chip deadline' + (ev.days!==null&&ev.days<=7&&ev.days>=0?' urgent':'') + '" title="' + esc(ev.school+' 出願締切') + '">' + esc((function(u){ return u ? String(u.name || '').replace(/大学$/, '').replace(/大$/, '') + (u.faculty ? ' ' + String(u.faculty).replace(/学部$/, '') : '') : ev.school; })(unis.filter(function(u){return u.id===ev.uid;})[0])) + '</span>';
       }).join('');
       if(evs.length>2) chips+='<span class="adm-more">+'+(evs.length-2)+'</span>';
       cells+='<div class="adm-day'+(isToday?' today':'')+'"><strong>'+day+'</strong>'+chips+'</div>';
