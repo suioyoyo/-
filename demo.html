@@ -1059,6 +1059,7 @@ body {
 .meet-detail-item:last-child:nth-child(odd){grid-column:1/-1}
 @media(max-width:600px){.meet-school-detail{overflow:visible}.meet-detail-grid{min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}.meet-detail-item:last-child:nth-child(odd){grid-column:1/-1}}
 
+.meet-center-countdown{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #B8D4EE;background:#EFF6FF;border-radius:14px;padding:12px 14px;min-width:0}.meet-center-countdown>div{min-width:0}.meet-center-label{display:block;font-size:10px;font-weight:900;color:#1E4E82}.meet-center-countdown b{display:block;margin-top:4px;font-size:10px;color:#506B89}.meet-center-days{flex-shrink:0}.meet-center-days strong{font-size:17px;color:#174B80;white-space:nowrap}@media(max-width:390px){.meet-center-countdown{flex-wrap:wrap}.meet-center-days strong{font-size:16px}}
 </style>
 
 <script>
@@ -1426,6 +1427,12 @@ body {
     var firstSchedule = first ? cleanSchedule(first.schedule) : {};
     var firstExamDays = firstSchedule.examDate ? daysUntil(firstSchedule.examDate) : null;
 
+    // 2027年度共通テスト本試験：2027年1月16日・17日
+    var centerExamDate = '2027-01-16';
+    var centerDays = daysUntil(centerExamDate);
+    var centerHero = '<div class="meet-center-countdown"><div><span class="meet-center-label">COMMON TEST / 共通テストまで</span><b>2027年1月16日（土）・17日（日）</b></div>' +
+      '<div class="meet-center-days">' + (centerDays > 0 ? '<strong>あと ' + centerDays + ' 日</strong>' : centerDays === 0 ? '<strong>今日が試験日</strong>' : '<strong>試験日を経過</strong>') + '</div></div>';
+
     var schools = unis.map(function (u) {
       var sc = cleanSchedule(u.schedule);
       return { u:u, deadline:sc.applyDeadline || '', days:sc.applyDeadline ? daysUntil(sc.applyDeadline) : null };
@@ -1516,7 +1523,7 @@ body {
       '<div class="adm-week"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>' +
       '<div class="adm-cal">'+cells+'</div><div class="meet-legend">カレンダーには出願締切のみ表示</div></div>';
 
-    return '<div class="meet-wrap">' + firstHero +
+    return '<div class="meet-wrap">' + firstHero + centerHero +
       '<div class="meet-section"><div class="meet-section-head"><div><h3>受験校一覧</h3><p>大学を押すと全日程を確認できます</p></div><span class="meet-school-count">' + schools.length + '校</span></div>' +
       missingBox + '<div class="meet-school-list">' + schoolRows + '</div>' + calendar + '</div>' +
       '<div class="meet-demo-note">デモ版の日程は画面確認用の仮データです。</div></div>';
