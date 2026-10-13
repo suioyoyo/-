@@ -1048,6 +1048,17 @@ body {
 .meet-school-detail{padding:7px 9px}.meet-detail-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.meet-detail-item{min-width:0;padding:7px 5px;border-radius:7px}.meet-detail-item span{font-size:8px;line-height:1.3;white-space:normal}.meet-detail-item b{font-size:9px;white-space:nowrap}.meet-detail-item:last-child:nth-child(odd){grid-column:auto}
 @media(max-width:600px){.meet-school-detail{overflow-x:auto;-webkit-overflow-scrolling:touch}.meet-detail-grid{min-width:550px;grid-template-columns:repeat(5,minmax(100px,1fr))}}
 .mx-year-btn{border:0;background:transparent;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:5px 2px;white-space:nowrap}.mx-year-btn:focus-visible{outline:2px solid #4978B4;border-radius:4px}
+
+/* Calendar details stay inside the viewport without forcing page-wide horizontal shrink. */
+.meet-wrap,.meet-section,.meet-school-list,.meet-school,.meet-school-detail{min-width:0;max-width:100%;box-sizing:border-box}
+.meet-school-detail{overflow:visible;padding:9px}
+.meet-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0;max-width:100%;gap:6px}
+.meet-detail-item{min-width:0;max-width:100%;box-sizing:border-box;padding:8px;border-radius:9px}
+.meet-detail-item b{font-size:10px;white-space:normal;overflow-wrap:anywhere}
+.meet-detail-item span{font-size:9px}
+.meet-detail-item:last-child:nth-child(odd){grid-column:1/-1}
+@media(max-width:600px){.meet-school-detail{overflow:visible}.meet-detail-grid{min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}.meet-detail-item:last-child:nth-child(odd){grid-column:1/-1}}
+
 </style>
 
 <script>
