@@ -1111,7 +1111,7 @@ body {
     studentSeminarView: 'scores',
     archived: [],
     calendarMonth: '',
-    calendarOpen: ''
+    calendarOpen: {}
   };
 
   /* ---------- 共通テストと年度 ---------- */
@@ -1466,7 +1466,7 @@ body {
     }
 
     var schoolRows = schools.length ? schools.map(function (x) {
-      var u=x.u, firstKind=(u.kind || 'sub')==='first', opened=S.calendarOpen===u.id;
+      var u=x.u, firstKind=(u.kind || 'sub')==='first', opened=!!S.calendarOpen[u.id];
       var rel=x.days===null?'未登録':(x.days<0?'締切済':(x.days===0?'今日':(x.days===1?'明日':'あと'+x.days+'日')));
       var cls=x.days===null?'':(x.days<0?'past':(x.days<=7?'urgent':(x.days<=30?'soon':'')));
       return '<div class="meet-school' + (firstKind?' first':'') + (opened?' open':'') + '">' +
@@ -2642,7 +2642,7 @@ body {
       b.onkeydown = function (e) { if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click();} };
       b.onclick = function () {
         var uid=b.getAttribute('data-adm-toggle')||'';
-        S.calendarOpen = S.calendarOpen===uid ? '' : uid;
+        S.calendarOpen[uid] = !S.calendarOpen[uid];
         render();
       };
     });
