@@ -1047,6 +1047,7 @@ body {
 /* Calendar expanded dates: one compact horizontal strip, scroll only inside the strip on narrow screens */
 .meet-school-detail{padding:7px 9px}.meet-detail-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.meet-detail-item{min-width:0;padding:7px 5px;border-radius:7px}.meet-detail-item span{font-size:8px;line-height:1.3;white-space:normal}.meet-detail-item b{font-size:9px;white-space:nowrap}.meet-detail-item:last-child:nth-child(odd){grid-column:auto}
 @media(max-width:600px){.meet-school-detail{overflow-x:auto;-webkit-overflow-scrolling:touch}.meet-detail-grid{min-width:550px;grid-template-columns:repeat(5,minmax(100px,1fr))}}
+.mx-year-btn{border:0;background:transparent;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:5px 2px;white-space:nowrap}.mx-year-btn:focus-visible{outline:2px solid #4978B4;border-radius:4px}
 </style>
 
 <script>
@@ -1089,6 +1090,7 @@ body {
     authSid: '',
     mxOpen: {},
     extraYears: {},
+    yearOverrides: {},
     teacherFilter: 'all',
     teacherStudent: '',
     studentPanel: 'past',
@@ -1695,7 +1697,8 @@ body {
 
     var years = yearsFor(kind);
     var extraCount = Number(S.extraYears[label] || 0);
-    for (var ex=1;ex<=extraCount;ex++) years.push(String(LATEST_YEAR - (kind === 'first' ? 10 : 5) - ex + 1));
+    var customYears = S.yearOverrides[label] || [];
+    for (var ex=1;ex<=extraCount;ex++) { var defaultYear=String(LATEST_YEAR-(kind==='first'?10:5)-ex+1); years.push(customYears[ex-1] || defaultYear); }
     recs.forEach(function (r) { var y = r.year || '—'; if (years.indexOf(y) < 0) years.push(y); });
     years.sort(function (a, b) { return String(b).localeCompare(String(a)); });
 
@@ -1799,7 +1802,7 @@ body {
           (entered && entered < subs.length ? '<small>' + entered + '/' + subs.length + '科目</small>' : '') + '</td>';
       }
 
-      return '<tr><th class="mx-y">' + esc(y) + '</th>' + cells + totalCell + '</tr>';
+      return '<tr><th class="mx-y"><button type="button" class="mx-year-btn" data-year-edit="' + esc(label) + '" data-year-value="' + esc(y) + '" title="年度を編集・削除">' + esc(y) + ' ✎</button></th>' + cells + totalCell + '</tr>';
     }).join('');
 
     var total = years.length * subs.length;
@@ -2818,6 +2821,25 @@ body {
       }
     });
 
+    root.querySelectorAll('[data-year-edit]').forEach(function(b){
+      b.onclick=function(){
+        var label=b.getAttribute('data-year-edit'), year=b.getAttribute('data-year-value');
+        var kind=kindOf(label), base=yearsFor(kind);
+        var custom=S.yearOverrides[label]||[], count=Number(S.extraYears[label]||0);
+        var index=-1;
+        for(var i=0;i<count;i++){var fallback=String(LATEST_YEAR-(kind==='first'?10:5)-i);if((custom[i]||fallback)===year){index=i;break;}}
+        if(index<0){alert('この年度は基本の表示年度、または点数記録から表示されています。追加した年度だけ編集・削除できます。');return;}
+        var choice=prompt(year+'年度を編集できます。別の年度を入力、または「削除」と入力してください。',year);
+        if(choice===null)return;choice=choice.trim();
+        if(choice==='削除'){
+          if(!confirm(year+'年度の追加表示を削除しますか？（入力済みの点数記録は削除されません）'))return;
+          custom.splice(index,1);S.extraYears[label]=count-1;S.yearOverrides[label]=custom;render();return;
+        }
+        if(!/^\\d{4}$/.test(choice)){alert('年度は4桁の西暦で入力してください。');return;}
+        if(choice!==year && (base.indexOf(choice)>=0||custom.some(function(v,j){return j!==index&&v===choice;}))){alert('その年度はすでに表示されています。');return;}
+        custom[index]=choice;S.yearOverrides[label]=custom;render();
+      };
+    });
     root.querySelectorAll('[data-add-year]').forEach(function(b){ b.onclick=function(){ var label=b.getAttribute('data-add-year'); S.extraYears[label]=(Number(S.extraYears[label]||0)+1); render(); }; });
     root.querySelectorAll('[data-mxtoggle]').forEach(function (head) {
       head.onclick = function () {
