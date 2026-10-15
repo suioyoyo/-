@@ -1095,9 +1095,12 @@ body {
 .adm-chip{transition:background-color 180ms ease,transform 180ms var(--motion-ease)}
 .adm-chip:active{transform:scale(.96)}
 .adm-day.today{animation:ux-glow 3.5s ease-in-out infinite}
-.mx-h[data-mxtoggle]:active{background:#e9ece8}
+.mx-h[data-mxtoggle]:active{background:inherit}
 .mx-h[data-mxtoggle]::after{transition:transform 200ms var(--motion-ease)}
-.mx-h[data-mxtoggle]:active::after{transform:translateY(-50%) scale(1.22)}
+.mx-h[data-mxtoggle]:active::after{transform:translateY(-50%) scale(1.12)}
+/* Keep collapsible university / Common Test header colors steady on touch */
+.mx-h[data-mxtoggle],.mx-h[data-mxtoggle]:hover,.mx-h[data-mxtoggle]:active{background:#F7F8F5}
+.meet-school-hit:active{background-color:inherit}
 .mx-scroll{scroll-behavior:smooth}
 input,select,textarea{transition:border-color 180ms ease,box-shadow 180ms ease,background-color 180ms ease}
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(168,27,34,.09)}
