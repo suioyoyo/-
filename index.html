@@ -1066,6 +1066,19 @@ body {
 .mx-first > .mx-h[data-mxtoggle]:is(:hover,:active,:focus),
 .mx-first > .mx-h[data-mxtoggle][data-open="1"]{background:linear-gradient(135deg,#7E302C,#B65349);color:#fff}
 
+/* Mobile score matrices: fill available width without a blank right gutter. */
+.mx-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden}
+.mx-scroll>.mx-t{width:max-content;min-width:100%}
+/* Keep the status pill in the header, away from the expanding score grid. */
+.mx-h[data-mxtoggle]{display:flex;align-items:center;gap:10px}
+.mx-h[data-mxtoggle] .mx-title-stack{min-width:0;flex:1}
+.mx-h[data-mxtoggle] .mx-title-stack strong{overflow-wrap:anywhere}
+.mx-h[data-mxtoggle]>em{float:none;flex:none;margin:0;white-space:nowrap}
+@media(max-width:480px){
+ .mx-h[data-mxtoggle]{padding-right:40px;gap:6px}
+ .mx-h[data-mxtoggle]>em{font-size:10px}
+}
+
 /* --- 生徒テストゼミ入力 --- */
 .student-entry-note{padding:9px 10px;border-radius:10px;background:#F2F6FB;color:#4D6077;font-size:10px;font-weight:700;margin-bottom:9px}.student-seminar-entry{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.student-seminar-entry label{display:grid;grid-template-columns:auto minmax(34px,1fr) auto;gap:4px;align-items:center;font-size:8.5px;color:var(--ink-soft)}.student-seminar-entry input{min-width:0;width:100%;border:1px solid #D8DDE4;border-radius:7px;padding:6px 3px;text-align:center;font:800 12px var(--gothic);background:#fff}.student-seminar-entry small{font-size:8px;color:var(--ink-soft)}
 
