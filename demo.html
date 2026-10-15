@@ -1095,11 +1095,14 @@ body {
 .adm-chip{transition:background-color 180ms ease,transform 180ms var(--motion-ease)}
 .adm-chip:active{transform:scale(.96)}
 .adm-day.today{animation:ux-glow 3.5s ease-in-out infinite}
-.mx-h[data-mxtoggle]:active{background:inherit}
+
 .mx-h[data-mxtoggle]::after{transition:transform 200ms var(--motion-ease)}
 .mx-h[data-mxtoggle]:active::after{transform:translateY(-50%) scale(1.12)}
 /* Keep collapsible university / Common Test header colors steady on touch */
-.mx-h[data-mxtoggle],.mx-h[data-mxtoggle]:hover,.mx-h[data-mxtoggle]:active{background:#F7F8F5}
+/* Preserve original category gradients during hover and tap */
+.mx-center>.mx-h[data-mxtoggle]:is(:hover,:active){background:linear-gradient(135deg,#244B78,#3F6F9F);color:#fff}
+.mx-first>.mx-h[data-mxtoggle]:is(:hover,:active){background:linear-gradient(135deg,#7E302C,#B65349);color:#fff}
+.mx:not(.mx-center):not(.mx-first)>.mx-h[data-mxtoggle]:is(:hover,:active){background:#fff}
 .meet-school-hit:active{background-color:inherit}
 .mx-scroll{scroll-behavior:smooth}
 input,select,textarea{transition:border-color 180ms ease,box-shadow 180ms ease,background-color 180ms ease}
