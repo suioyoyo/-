@@ -1069,6 +1069,48 @@ body {
 .adm-chip-uni,.adm-chip-faculty{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:clip;font-size:clamp(8px,2.25vw,11px);letter-spacing:-.04em}
 .adm-chip{line-height:1.3;text-align:center;padding:3px 1px}
 @media(max-width:390px){.adm-chip-uni,.adm-chip-faculty{font-size:8px}}
+
+/* Motion Lab — demo-only UX animations, compositor-friendly and accessible */
+:root{--motion-ease:cubic-bezier(.22,1,.36,1);--motion-fast:160ms;--motion-mid:300ms}
+@keyframes ux-rise{from{opacity:0;transform:translate3d(0,9px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes ux-pop{from{opacity:.65;transform:scale(.975)}to{opacity:1;transform:scale(1)}}
+@keyframes ux-glow{0%,100%{box-shadow:0 0 0 0 rgba(168,27,34,0)}50%{box-shadow:0 0 0 4px rgba(168,27,34,.07)}}
+@keyframes ux-shimmer{from{background-position:150% 0}to{background-position:-150% 0}}
+@keyframes ux-toast{from{opacity:0;transform:translate3d(-50%,12px,0)}to{opacity:1;transform:translate3d(-50%,0,0)}}
+.meet-hero,.meet-center-countdown,.seminar-head,.adm-dashboard>.adm-head{animation:ux-rise 420ms var(--motion-ease) both}
+.meet-center-countdown{animation-delay:65ms}
+.meet-section-head,.seminar-summary,.meet-calendar{animation:ux-rise 320ms var(--motion-ease) both}
+.meet-school,.seminar-row,.seminar-chart-card,.meet-detail-item,.adm-event{transition:background-color var(--motion-fast) ease,border-color var(--motion-fast) ease,box-shadow 220ms ease,transform 220ms var(--motion-ease)}
+.meet-school:active,.seminar-row:active,.adm-event:active{transform:scale(.993)}
+.meet-school-hit,.meet-chevron,.adm-cal-nav,.btn,.tabs button,.subtabs button,[data-student-panel],[data-teacher-panel],[data-mxtoggle]{transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms var(--motion-ease),box-shadow 180ms ease}
+.meet-school-hit:active,.adm-cal-nav:active,.btn:active,.tabs button:active,.subtabs button:active,[data-student-panel]:active,[data-teacher-panel]:active{transform:scale(.96)}
+.meet-chevron{transform-origin:center}
+.meet-school-hit[aria-expanded="true"] .meet-chevron,[data-cal-toggle][aria-expanded="true"] .meet-chevron{transform:rotate(180deg)}
+.meet-school-detail{animation:ux-rise 240ms var(--motion-ease) both}
+.meet-detail-item{animation:ux-pop 220ms var(--motion-ease) both}
+.meet-detail-item:nth-child(2){animation-delay:30ms}
+.meet-detail-item:nth-child(3){animation-delay:60ms}
+.meet-detail-item:nth-child(4){animation-delay:90ms}
+.meet-detail-item:nth-child(5){animation-delay:120ms}
+.adm-chip{transition:background-color 180ms ease,transform 180ms var(--motion-ease)}
+.adm-chip:active{transform:scale(.96)}
+.adm-day.today{animation:ux-glow 3.5s ease-in-out infinite}
+.mx-h[data-mxtoggle]:active{background:#e9ece8}
+.mx-h[data-mxtoggle]::after{transition:transform 200ms var(--motion-ease)}
+.mx-h[data-mxtoggle]:active::after{transform:translateY(-50%) scale(1.22)}
+.mx-scroll{scroll-behavior:smooth}
+input,select,textarea{transition:border-color 180ms ease,box-shadow 180ms ease,background-color 180ms ease}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(168,27,34,.09)}
+.toast{animation:ux-rise 240ms var(--motion-ease) both}
+@media(hover:hover) and (pointer:fine){
+ .meet-school:hover,.seminar-row:hover,.adm-event:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(20,30,40,.07)}
+ .btn:hover,.adm-cal-nav:hover{transform:translateY(-1px)}
+ .adm-chip:hover{transform:scale(1.035)}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
 </style>
 
 <script>
