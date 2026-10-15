@@ -1060,6 +1060,12 @@ body {
 /* --- 過去問：共通テスト / 第一志望を強調 --- */
 .mx-center{border-color:#395A86;box-shadow:0 10px 28px rgba(43,76,119,.12)}.mx-center>.mx-h{background:linear-gradient(135deg,#244B78,#3F6F9F);color:#fff;border-bottom-color:#244B78}.mx-first{border-color:#9C4A43;box-shadow:0 10px 28px rgba(120,47,40,.11)}.mx-first>.mx-h{background:linear-gradient(135deg,#7E302C,#B65349);color:#fff;border-bottom-color:#7E302C}.mx-center>.mx-h em,.mx-first>.mx-h em{background:rgba(255,255,255,.16);color:#fff}.mx-center>.mx-h[data-mxtoggle]::after,.mx-first>.mx-h[data-mxtoggle]::after{color:#fff}.mx-title-stack{display:inline-flex;flex-direction:column;gap:1px}.mx-title-stack small{font:800 8px/1 var(--gothic);letter-spacing:.13em;opacity:.65}.mx-title-stack strong{font-size:15px}
 
+/* Keep highlighted accordion headers colored during hover, touch and expansion. */
+.mx-center > .mx-h[data-mxtoggle]:is(:hover,:active,:focus),
+.mx-center > .mx-h[data-mxtoggle][data-open="1"]{background:linear-gradient(135deg,#244B78,#3F6F9F);color:#fff}
+.mx-first > .mx-h[data-mxtoggle]:is(:hover,:active,:focus),
+.mx-first > .mx-h[data-mxtoggle][data-open="1"]{background:linear-gradient(135deg,#7E302C,#B65349);color:#fff}
+
 /* --- 生徒テストゼミ入力 --- */
 .student-entry-note{padding:9px 10px;border-radius:10px;background:#F2F6FB;color:#4D6077;font-size:10px;font-weight:700;margin-bottom:9px}.student-seminar-entry{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.student-seminar-entry label{display:grid;grid-template-columns:auto minmax(34px,1fr) auto;gap:4px;align-items:center;font-size:8.5px;color:var(--ink-soft)}.student-seminar-entry input{min-width:0;width:100%;border:1px solid #D8DDE4;border-radius:7px;padding:6px 3px;text-align:center;font:800 12px var(--gothic);background:#fff}.student-seminar-entry small{font-size:8px;color:var(--ink-soft)}
 
